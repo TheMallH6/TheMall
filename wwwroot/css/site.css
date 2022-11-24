@@ -4,6 +4,10 @@ html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+h1 {
+    color: #003399 !important;
+}
+
 h1:focus {
     outline: none;
 }
@@ -62,3 +66,22 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+.form-control {
+    width: 50% !important;
+}
+
+[type=submit] {
+    background-color: #D12B27 !important;
+    color: #fff !important;
+    border-color: #D12B27 !important;
+    border-radius: 4px !important;
+    height: 3rem !important;
+    display: flex !important;
+    align-items: center !important;
+    line-height: 3rem !important;
+    padding: 2% !important;
+}
+
+.customTextColor {
+    color: #003399;
+}

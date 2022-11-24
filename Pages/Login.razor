@@ -1,0 +1,43 @@
+﻿@page "/login"
+@using TheMall.Data
+
+<EditForm Model="@Model" OnValidSubmit="@HandleValidLogin" OnInvalidSubmit="@HandleInvalidLogin">
+ 
+    <DataAnnotationsValidator />
+
+    <div class="form-group">
+        <label for="name">Brugernavn: </label>
+        <InputText Id="name" Class="form-control" @bind-Value="@Model.UserName"></InputText>
+        <ValidationMessage For="@(() => Model.UserName)" />
+    </div>
+    <br />
+    <div class="form-group">
+        <label for="pass">Kodeord: </label>
+        <InputText Id="pass" Class="form-control" @bind-Value="@Model.Password"></InputText>
+        <ValidationMessage For="@(() => Model.Password)" />
+    </div>
+    <br />
+    <button type="submit">Login</button>
+    <div class="customTextColor">@StatusMessage</div>
+
+</EditForm>
+
+@code
+{
+    private string StatusMessage = " ";
+
+    private UserLogin Model = new UserLogin();
+
+    protected void HandleValidLogin()
+    {
+        StatusMessage = "Vi tjekker lige dit login...";
+
+        // call API
+    }
+
+    protected void HandleInvalidLogin()
+    {
+        StatusMessage = "Noget gik galt...";
+    }
+}
+

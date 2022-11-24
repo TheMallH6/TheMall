@@ -69,3 +69,17 @@ main {
         padding-right: 1.5rem !important;
     }
 }
+
+footer {
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+}
+
+footer p {
+    margin-block-start: 1.33em;
+    margin-block-end: 1.33em;
+    margin-left: 2em;
+    font-size: 20px;
+    color: #003399;
+}
