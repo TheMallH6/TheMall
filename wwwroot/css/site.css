@@ -89,3 +89,9 @@ a, .btn-link {
 .customTextColor {
     color: #003399;
 }
+
+.canvasStyle {
+    border-color: #003399 !important;
+    border: solid;
+    width: fit-content !important;
+}
