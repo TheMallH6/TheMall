@@ -11,5 +11,11 @@ namespace TheMall.Data
         public string? Password { get; set; }
 
         public string? Role { get; set; }
+
+        public string? SessionKey { get; set; }
+
+        public int FirmID { get; set; }
+
+
     }
 }

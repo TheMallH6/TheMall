@@ -1,5 +1,6 @@
 ﻿@page "/login"
 @using TheMall.Data
+@inject NavigationManager NavManager
 
 <EditForm Model="@Model" OnValidSubmit="@HandleValidLogin" OnInvalidSubmit="@HandleInvalidLogin">
  
@@ -33,6 +34,9 @@
         StatusMessage = "Vi tjekker lige dit login...";
 
         // call API
+
+        NavManager.NavigateTo("/guide");
+
 
     }
 
