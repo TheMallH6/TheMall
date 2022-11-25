@@ -70,8 +70,16 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+
+label {
+    color: #003399 !important;
+}
+
 .form-control {
     width: 50% !important;
+    color: #003399 !important;
+    border-color: #B2C2E1 !important;
+    border: 1px solid #B2C2E1 !important;
 }
 
 [type=submit] {
