@@ -15,7 +15,5 @@ namespace TheMall.Data
         public string? SessionKey { get; set; }
 
         public int FirmID { get; set; }
-
-
     }
 }

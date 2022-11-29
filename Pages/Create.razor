@@ -6,32 +6,57 @@
 @using Blazor.Extensions.Canvas.Canvas2D;
 @using Blazor.Extensions.Canvas.WebGL;
 @using BlazorColorPicker
+@using System.Collections.Generic;
+@using TheMall.Data;
 
-<h3>CanvasCreateMap</h3>
+@inject AppState AppState
 
-@*<canvas  @onmousedown="MouseDown" @onmouseup="MouseUp" height="900" width="900">
-</canvas>
-*@
-<button @onclick="() => ToolChanger(DrawTool.square)" style="align-content:center">Square</button>
-<button @onclick="() => ToolChanger(DrawTool.line)" style="align-content:center">Line</button>
-<button @onclick="() => ToolChanger(DrawTool.singleLine)" style="align-content:center">Line</button>
-<button @onclick="() => ToolChanger(DrawTool.circle)" style="align-content:center">Circle</button>
-<button @onclick="() => ToolChanger(DrawTool.fill)" style="align-content:center">Circle</button>
-<button @onclick="Undo" style="align-content:center">Undo</button>
+<h3>Hej @UName</h3>
 
-<button class="btn btn-primary" @onclick="OnColorPickerOpen">
-    <div style="background-color:@color" class="buttonColor"></div> Select a Color
-</button>
+<div style="display: inline-block;">
+    <div id="drawCanvas" class="canvasStyle" tabindex="0" @onmousedown="MouseDown" @onmouseup="MouseUp" style="float: left;">
+        <BECanvas Width="600" Height="500" @ref="canvasRef" />
+    </div>
 
-<input id="fillBox" type="checkbox" @bind-value="@fill" />
-<label for="fillBox"> Fill box</label>
-<br>
+    <div style="float: right; width: 300px; margin-left: 30px;">
+        <h3>Skitse plantegning.</h3>
+        <div>
+            <button class="drawBTN drawBTNsizeL" @onclick="() => ToolChanger(DrawTool.line)" style="align-content:center">Tegn en figur</button>
+        </div>
+        <div>
+            <button class="drawBTN drawBTNsizeL" @onclick="() => ToolChanger(DrawTool.square)" style="align-content:center">Tegn en firkant</button>
+       </div>
+        <div>
+            <button class="drawBTN drawBTNsizeL" @onclick="() => ToolChanger(DrawTool.singleLine)" style="align-content:center">Tegn en streg</button>
+        </div>
+        <div>
+            <button class="drawBTN drawBTNsizeS" @onclick="UndoLast" style="align-content:center">Fortryd</button>
+        </div>
+       <br />
+        <input id="fillBox" type="checkbox" @bind-value="@fill" />
+        <label for="fillBox"> Anvend farve</label>
+        <br />
 
-<ColorPicker Title="My Blazor ColorPicker" IsOpened="isOpened" Closed="OnColorPickerClosed" MyColor="@color">
-</ColorPicker>
+        <button class="drawBTN drawBTNsizeL" @onclick="OnColorPickerOpen">
+           <div style="background-color:@baseColorPicker" class="buttonColor"></div> Vælg farve
+       </button>
+       
+        <ColorPicker Title="Stop and go ColorPicker" IsOpened="isOpened" Closed="OnColorPickerClosed" MyColor="@baseColorPicker"></ColorPicker>
+        <br />
+        <hr />
+        <h3>Insæt lokation.</h3>
+        <div>
+             <button class="drawBTN drawBTNsizeL">Upload ikon</button>
+             <button class="drawBTN drawBTNsizeS">Placere</button>
+        </div>
+        <div>
+             <button class="drawBTN drawBTNsizeL">Skriv Tekst</button>
+             <button class="drawBTN drawBTNsizeS">Placere</button>
+        </div>
+        <br />
 
-<div class="canvasStyle" tabindex="0" @onmousedown="MouseDown" @onmouseup="MouseUp">
-    <BECanvas Width="1200" Height="400" @ref="canvasRef" />
+        <button hidden="@isHidden" class="drawBTN drawBTNsizeL" @onclick="Save" style="align-content:center; margin-top: 7%;">Opret</button>
+    </div>
 </div>
 
 @code {
@@ -40,22 +65,43 @@
     private Point pointOnExit;
     private BECanvasComponent? canvasRef;
     private Canvas2DContext ctx;
+    private Canvas2DContext grid_ctx;
     private DrawTool selectedTool = DrawTool.line;
     private object drawing;
     bool isOpened = false;
-    string color = "#F1F7E9";
+    bool isHidden = true;
+    string baseStrokeColor = "#777";
+    string baseColorPicker = "#D12B27";
+    string eraseColor = "#FFF";
     private bool fill;
+
+    public string UName { get; set; }
+    public string URole { get; set; }
+
+    protected override void OnInitialized()
+    {
+        UName = AppState.FuName.UserName;
+        URole = AppState.FuRole.Role;
+
+        if (URole == "Redaktør")
+        {
+            isHidden = false;
+        }
+        else
+        {
+            isHidden = true;
+        }
+    }
+
+    FigureObj figureo = new FigureObj();
+    LineObj lineo = new LineObj();
+    RectangelObj recto = new RectangelObj();
+
+    List<DrawingShapeObj> allObjInList = new List<DrawingShapeObj>();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         this.ctx = await canvasRef.CreateCanvas2DAsync();
-
-    }
-
-    private async void Undo()
-    {
-        await ctx.RestoreAsync();
-
     }
 
     protected void ToolChanger(DrawTool tool)
@@ -69,7 +115,6 @@
     {
         clicks++;
         pointOnEnter = new Point((int)args.OffsetX, (int)args.OffsetY);
-
     }
 
     private async void MouseUp(MouseEventArgs args)
@@ -77,39 +122,66 @@
         pointOnExit = new Point((int)args.OffsetX, (int)args.OffsetY);
 
         DrawingObjectByTool();
-
     }
 
     private async void DrawingObjectByTool()
     {
         await ctx.BeginBatchAsync();
+
         if (fill)
-            await ctx.SetFillStyleAsync(color);
+            await ctx.SetFillStyleAsync(baseColorPicker);
 
         switch (selectedTool)
         {
-            case DrawTool.circle:
+            case DrawTool.line:
 
-                break;
-            case DrawTool.singleLine:
                 if (clicks == 1)
+                {
                     await ctx.MoveToAsync(pointOnEnter.X, pointOnEnter.Y);
+                }
                 else
                 {
                     await ctx.LineToAsync(pointOnExit.X, pointOnExit.Y);
+
                     if (fill)
+                    {
                         await ctx.FillAsync();
+                        await ctx.SetStrokeStyleAsync(baseColorPicker);
+                    }
+                    else
+                    {
+                        await ctx.SetStrokeStyleAsync(baseStrokeColor);
+                    }
                 }
                 await ctx.StrokeAsync();
+
+                allObjInList.Add(new FigureObj());
+
                 break;
-            case DrawTool.line:
+
+            case DrawTool.singleLine:
+
                 await ctx.MoveToAsync(pointOnEnter.X, pointOnEnter.Y);
                 await ctx.LineToAsync(pointOnExit.X, pointOnExit.Y);
                 await ctx.StrokeAsync();
                 await ctx.RestoreAsync();
+
+                if (fill)
+                {
+                    await ctx.SetStrokeStyleAsync(baseColorPicker);
+                }
+                else
+                {
+                    await ctx.SetStrokeStyleAsync(baseStrokeColor);
+                }
+
+                allObjInList.Add(new LineObj());
+
                 break;
+
             case DrawTool.square:
-                var rect = new RectangleF(Math.Min(pointOnEnter.X, pointOnExit.X),
+                var rect = new RectangleF(
+                           Math.Min(pointOnEnter.X, pointOnExit.X),
                            Math.Min(pointOnEnter.Y, pointOnExit.Y),
                            Math.Abs(pointOnEnter.X - pointOnExit.X),
                            Math.Abs(pointOnEnter.Y - pointOnExit.Y));
@@ -118,13 +190,19 @@
 
                     await ctx.StrokeRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
                     await ctx.FillRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
+                    await ctx.SetStrokeStyleAsync(baseColorPicker);
 
                 }
                 else
+                {
                     await ctx.StrokeRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
+                    await ctx.SetStrokeStyleAsync(baseStrokeColor);
+                }
+
+                allObjInList.Add(new RectangelObj());
+
                 break;
         }
-
         await ctx.EndBatchAsync();
     }
 
@@ -135,7 +213,17 @@
 
     private void OnColorPickerClosed(string value)
     {
-        color = value;
+        baseColorPicker = value;
         isOpened = false;
+    }
+
+    private void UndoLast()
+    {
+        allObjInList.RemoveAt(allObjInList.Count - 1);
+    }
+
+    protected void Save()
+    {
+        // call API..
     }
 }

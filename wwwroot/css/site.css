@@ -16,6 +16,10 @@ h2 {
     color: #003399 !important;
 }
 
+h3 {
+    color: #003399 !important;
+}
+
 a, .btn-link {
     color: #0071c1;
 }
@@ -103,3 +107,38 @@ label {
     border: solid;
     width: fit-content !important;
 }
+
+.drawBTN {
+    color: #fff !important;
+    border-radius: 4px !important;
+    height: 2rem !important;
+    align-items: center !important;
+    margin-top: 1%;
+    margin-bottom: 1%;
+}
+
+.drawBTNsizeS {
+    background-color: #EFB4B3 !important;
+    border-color: #EFB4B3 !important;
+    width: 90px !important;
+    margin-left: 5% !important;
+}
+
+.drawBTNsizeL {
+    background-color: #8BA3CB !important;
+    border-color: #8BA3CB !important;
+    width: 130px !important;
+}
+
+/*#drawCanvas {
+    background-color: transparent;
+    background-image: linear-gradient(0deg, transparent 9%, #dedede 10%, #dedede 12%, transparent 13%, transparent 29%, #dedede 30%, #dedede 31%, transparent 32%, transparent 49%, #dedede 50%, #dedede 51%, transparent 52%, transparent 69%, #dedede 70%, #dedede 71%, transparent 72%, transparent 89%, #dedede 90%, #dedede 91%, transparent 92%, transparent), linear-gradient(90deg, transparent 9%, #dedede 10%, #dedede 12%, transparent 13%, transparent 29%, #dedede 30%, #dedede 31%, transparent 32%, transparent 49%, #dedede 50%, #dedede 51%, transparent 52%, transparent 69%, #dedede 70%, #dedede 71%, transparent 72%, transparent 89%, #dedede 90%, #dedede 91%, transparent 92%, transparent);
+    height: 100%;
+    background-size: 50px 50px
+}*/
+
+
+
+
+
+
