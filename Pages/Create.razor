@@ -34,7 +34,6 @@
         <div>
             <button class="drawBTN drawBTNsizeS" @onclick="UndoLast" style="align-content:center">Fortryd</button>
         </div>
-       <br />
         <input id="fillBox" type="checkbox" @bind-value="@fill" />
         <label for="fillBox"> Anvend farve</label>
         <br />
@@ -49,15 +48,19 @@
         <h3>Insæt lokation.</h3>
         <div>
              <button class="drawBTN drawBTNsizeL">Upload ikon</button>
-             <button class="drawBTN drawBTNsizeS">Placere</button>
         </div>
         <div>
              <button class="drawBTN drawBTNsizeL">Skriv Tekst</button>
-             <button class="drawBTN drawBTNsizeS">Placere</button>
         </div>
-        <br />
+        <EditForm Model="@Model">
+        <div class="form-group">
+            <label for="name">Etage:
+            <InputNumber Id="layer" Class="form-control formLay" @bind-Value="@Model.Layer"></InputNumber>
+            </label>
+        </div>
 
-        <button hidden="@isHidden" class="drawBTN drawBTNsizeL" @onclick="Save" style="align-content:center; margin-top: 7%;">Opret</button>
+        <button hidden="@isHidden" class="drawBTN drawBTNsizeL" @onclick="Save" style="align-content:center; margin-top: 4%;">Opret</button>
+        </EditForm>
     </div>
 </div>
 
@@ -78,6 +81,8 @@
     public string UName { get; set; }
     public string URole { get; set; }
 
+    private Map Model = new Map();
+
     protected override void OnInitialized()
     {
         UName = AppState.FuName.UserName;
@@ -91,7 +96,7 @@
         {
             isHidden = true;
         }
-    }
+    } 
 
     FigureObj figureo = new FigureObj();
     LineObj lineo = new LineObj();
@@ -225,6 +230,6 @@
     protected void Save()
     {
         // call API...
-        HttpResponseMessage response = client.PostAsJsonAsync("https://localhost:7032/Map/Create", allObjInList).Result;
+        HttpResponseMessage response = client.PostAsJsonAsync($"https://localhost:7032/Map/Create?layer={Model.Layer}", allObjInList).Result;
     }
 }

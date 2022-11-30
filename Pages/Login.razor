@@ -14,13 +14,13 @@
 
     <div class="form-group">
         <label for="name">Brugernavn: </label>
-        <InputText Id="name" Class="form-control" @bind-Value="@Model.UserName"></InputText>
+        <InputText Id="name" Class="form-control formLog" @bind-Value="@Model.UserName"></InputText>
         <ValidationMessage For="@(() => Model.UserName)" />
     </div>
     <br />
     <div class="form-group">
         <label for="pass">Kodeord: </label>
-        <InputText Id="pass" Class="form-control" @bind-Value="@Model.Password"></InputText>
+        <InputText Id="pass" Class="form-control formLog" @bind-Value="@Model.Password"></InputText>
         <ValidationMessage For="@(() => Model.Password)" />
     </div>
     <br />

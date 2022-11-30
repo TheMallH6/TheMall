@@ -1,8 +1,74 @@
 ﻿@page "/view"
-@using TheMall.Data
 
-<h3>CanvasView</h3>
+@using TheMall.Data.CanvasData
+@using System.Drawing
+@using Blazor.Extensions
+@using Blazor.Extensions.Canvas;
+@using Blazor.Extensions.Canvas.Canvas2D;
+@using Blazor.Extensions.Canvas.WebGL;
+@using BlazorColorPicker
+@using System.Collections.Generic;
+@using TheMall.Data;
+
+@inject AppState AppState
+@inject HttpClient client
+
+<h3>Hej @UName</h3>
+
+<div style="display: inline-block;">
+    <div id="drawCanvas" class="canvasStyle" tabindex="0" style="float: left;">
+        <BECanvas Width="600" Height="500" @ref="canvasRef" />
+    </div>
+
+    <div style="float: right; width: 300px; margin-left: 30px;">
+        <h3>Vælg og vis kort.</h3>
+        <div>
+            <button class="drawBTN drawBTNsizeL">Upload ikon</button>
+        </div>
+        <div>
+            <button class="drawBTN drawBTNsizeL">Upload ikon</button>
+        </div>
+        <div>
+            <button class="drawBTN drawBTNsizeL" @onclick="ShowMap">Vis</button>
+        </div>
+        <br />
+        <hr />
+        <h3 hidden="@isHidden">Slet kort.</h3>
+        <div>
+            <button hidden="@isHidden" class="drawBTN drawBTNsizeS" @onclick="DeleteMap">Slet</button>
+        </div>
+    </div>
+</div>
 
 @code {
+    private BECanvasComponent? canvasRef;
+    bool isHidden = true;
 
+    public string UName { get; set; }
+    public string URole { get; set; }
+
+    protected override void OnInitialized()
+      {
+          UName = AppState.FuName.UserName;
+          URole = AppState.FuRole.Role;
+
+          if (URole == "Redaktør")
+          {
+              isHidden = false;
+          }
+          else
+          {
+              isHidden = true;
+          }
+      }
+
+    protected void ShowMap()
+    {
+        // call API...
+    }
+
+    protected void DeleteMap()
+    {
+        // call API...
+    }
 }

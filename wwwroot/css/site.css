@@ -20,6 +20,14 @@ h3 {
     color: #003399 !important;
 }
 
+hr {
+    margin: 0.7rem 0 !important;
+    color: inherit;
+    background-color: currentColor;
+    border: 0;
+    opacity: .25;
+}
+
 a, .btn-link {
     color: #0071c1;
 }
@@ -80,10 +88,18 @@ label {
 }
 
 .form-control {
-    width: 50% !important;
     color: #003399 !important;
     border-color: #B2C2E1 !important;
     border: 1px solid #B2C2E1 !important;
+}
+
+.formLog {
+    width: 50% !important;
+}
+
+.formLay {
+    width: 24% !important;
+    padding: 0 !important;
 }
 
 [type=submit] {
@@ -121,6 +137,8 @@ label {
     background-color: #EFB4B3 !important;
     border-color: #EFB4B3 !important;
     width: 90px !important;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
     margin-left: 5% !important;
 }
 
