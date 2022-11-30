@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace TheMall.Data
+﻿namespace TheMall.Data
 {
     public class Mall
     {

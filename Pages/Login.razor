@@ -54,12 +54,13 @@
         await OnInitializedAsync();
 
 
-       if (Model.Role != null && Model.SessionKey != null)
-       {
+     if (Model.Role != null && Model.SessionKey != null && Model.FirmID < 0)
+        {
 
-             // Setting objects before navigating
+            // Setting objects before navigating
             AppState.FuName = new FirmUser { UserName = Model.UserName };
             AppState.FuRole = new FirmUser { Role = Model.Role };
+            AppState.FuFId = new FirmUser { FirmID = Model.FirmID };
 
             // Navigate to another page
             NavManager.NavigateTo("/create");
