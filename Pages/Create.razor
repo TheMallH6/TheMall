@@ -1,4 +1,5 @@
 ﻿@page "/create"
+
 @using TheMall.Data.CanvasData
 @using System.Drawing
 @using Blazor.Extensions
@@ -10,6 +11,7 @@
 @using TheMall.Data;
 
 @inject AppState AppState
+@inject HttpClient client
 
 <h3>Hej @UName</h3>
 
@@ -65,14 +67,12 @@
     private Point pointOnExit;
     private BECanvasComponent? canvasRef;
     private Canvas2DContext ctx;
-    private Canvas2DContext grid_ctx;
     private DrawTool selectedTool = DrawTool.line;
     private object drawing;
     bool isOpened = false;
     bool isHidden = true;
     string baseStrokeColor = "#777";
     string baseColorPicker = "#D12B27";
-    string eraseColor = "#FFF";
     private bool fill;
 
     public string UName { get; set; }
@@ -224,6 +224,7 @@
 
     protected void Save()
     {
-        // call API..
+        // call API...
+        HttpResponseMessage response = client.PostAsJsonAsync("https://localhost:7032/Map/Create", allObjInList).Result;
     }
 }
