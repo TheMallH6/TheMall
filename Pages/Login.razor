@@ -1,5 +1,6 @@
 ﻿@page "/login"
 
+@using System.Text;
 @using TheMall.Data
 @using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 @using System.Security.Cryptography;
@@ -41,15 +42,20 @@
 
         string? upassword = Model.Password;
 
-        // Generate a 128-bit salt using a sequence of cryptographically strong random bytes.
-        byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
+        /* // Generate a 128-bit salt using a sequence of cryptographically strong random bytes.
+           byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
 
-        // Derive a 256-bit subkey - using HMACSHA256 with 100,000 iterations)
-        string hashedPassWord = Convert.ToBase64String(KeyDerivation.Pbkdf2(password: upassword, salt: salt,
-        prf: KeyDerivationPrf.HMACSHA256,
-        iterationCount: 100000,
-        numBytesRequested: 256 / 8));
+          // Derive a 256-bit subkey - using HMACSHA256 with 100,000 iterations)
+          string hashedPassWord = Convert.ToBase64String(KeyDerivation.Pbkdf2(password: upassword, salt: salt,
+          prf: KeyDerivationPrf.HMACSHA256,
+          iterationCount: 100000,
+          numBytesRequested: 256 / 8));
+        */
 
+        var sha256 = SHA256.Create();
+        
+        string hashedPassWord = BitConverter.ToString(sha256.ComputeHash(Encoding.UTF8.GetBytes(upassword))).Replace("-", "");
+ 
         var result = await client.PostAsJsonAsync<object>($"https://localhost:7032/Validate/Login?uname={Model.UserName}&password={hashedPassWord}", null);
         await OnInitializedAsync();
 
