@@ -10,7 +10,7 @@
 @inject HttpClient client
 
 <EditForm Model="@Model" OnValidSubmit="@HandleValidLogin" OnInvalidSubmit="@HandleInvalidLogin">
- 
+
     <DataAnnotationsValidator />
 
     <div class="form-group">
@@ -53,14 +53,14 @@
         */
 
         var sha256 = SHA256.Create();
-        
+
         string hashedPassWord = BitConverter.ToString(sha256.ComputeHash(Encoding.UTF8.GetBytes(upassword))).Replace("-", "");
- 
+
         var result = await client.PostAsJsonAsync<object>($"https://localhost:7032/Validate/Login?uname={Model.UserName}&password={hashedPassWord}", null);
         await OnInitializedAsync();
 
 
-     if (Model.Role != null && Model.SessionKey != null && Model.FirmID < 0)
+        if (Model.Role != null && Model.SessionKey != null && Model.FirmID < 0)
         {
 
             // Setting objects before navigating
@@ -74,7 +74,7 @@
         else
         {
             StatusMessage = "Ingen Adgang";
-        } 
+        }
     }
 
     protected void HandleInvalidLogin()

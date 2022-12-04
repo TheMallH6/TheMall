@@ -9,6 +9,7 @@
 @using BlazorColorPicker
 @using System.Collections.Generic;
 @using TheMall.Data;
+@using TheMall.Data.Modles;
 
 @inject AppState AppState
 @inject HttpClient client
@@ -23,13 +24,13 @@
     <div style="float: right; width: 300px; margin-left: 30px;">
         <h3>Skitse plantegning.</h3>
         <div>
-            <button class="drawBTN drawBTNsizeL" @onclick="() => ToolChanger(DrawTool.line)" style="align-content:center">Tegn en figur</button>
+            <button class="drawBTN drawBTNsizeL" @onclick="() => ToolChanger(DrawTool.polygon)" style="align-content:center">Tegn en figur</button>
         </div>
         <div>
             <button class="drawBTN drawBTNsizeL" @onclick="() => ToolChanger(DrawTool.square)" style="align-content:center">Tegn en firkant</button>
-       </div>
+        </div>
         <div>
-            <button class="drawBTN drawBTNsizeL" @onclick="() => ToolChanger(DrawTool.singleLine)" style="align-content:center">Tegn en streg</button>
+            <button class="drawBTN drawBTNsizeL" @onclick="() => ToolChanger(DrawTool.line)" style="align-content:center">Tegn en streg</button>
         </div>
         <div>
             <button class="drawBTN drawBTNsizeS" @onclick="UndoLast" style="align-content:center">Fortryd</button>
@@ -39,28 +40,29 @@
         <br />
 
         <button class="drawBTN drawBTNsizeL" @onclick="OnColorPickerOpen">
-           <div style="background-color:@baseColorPicker" class="buttonColor"></div> Vælg farve
-       </button>
-       
+            <div style="background-color:@baseColorPicker" class="buttonColor"></div> Vælg farve
+        </button>
+
         <ColorPicker Title="Stop and go ColorPicker" IsOpened="isOpened" Closed="OnColorPickerClosed" MyColor="@baseColorPicker"></ColorPicker>
         <br />
         <hr />
         <h3>Insæt lokation.</h3>
         <div>
-             <button class="drawBTN drawBTNsizeL">Upload ikon</button>
+            <button class="drawBTN drawBTNsizeL">Upload ikon</button>
         </div>
         <div>
-             <button class="drawBTN drawBTNsizeL">Skriv Tekst</button>
+            <button class="drawBTN drawBTNsizeL" @onclick="DrawMap">Skriv Tekst</button>
         </div>
-        <EditForm Model="@Model">
+        @*        <EditForm Model="@Model">
         <div class="form-group">
-            <label for="name">Etage:
-            <InputNumber Id="layer" Class="form-control formLay" @bind-Value="@Model.Layer"></InputNumber>
-            </label>
+        <label for="name">
+        Etage:
+        <InputNumber Id="layer" Class="form-control formLay" @bind-Value="@Model.Layer"></InputNumber>
+        </label>
         </div>
 
+        </EditForm>*@
         <button hidden="@isHidden" class="drawBTN drawBTNsizeL" @onclick="Save" style="align-content:center; margin-top: 4%;">Opret</button>
-        </EditForm>
     </div>
 </div>
 
@@ -69,8 +71,11 @@
     private Point pointOnEnter;
     private Point pointOnExit;
     private BECanvasComponent? canvasRef;
+    private List<Component> Components { get; set; } = new List<Component>();
+    private List<int> Xinput { get; set; } = new List<int>();
+    private List<int> Yinput { get; set; } = new List<int>();
     private Canvas2DContext ctx;
-    private DrawTool selectedTool = DrawTool.line;
+    private DrawTool selectedTool = DrawTool.polygon;
     private object drawing;
     bool isOpened = false;
     bool isHidden = true;
@@ -80,27 +85,20 @@
 
     public string UName { get; set; }
     public string URole { get; set; }
-
-    private Map Model = new Map();
-
-   /* protected override void OnInitialized()
+    /* protected override void OnInitialized()
     {
-        UName = AppState.FuName.UserName;
-        URole = AppState.FuRole.Role;
+    UName = AppState.FuName.UserName;
+    URole = AppState.FuRole.Role;
 
-        if (URole == "Redaktør")
-        {
-            isHidden = false;
-        }
-        else
-        {
-            isHidden = true;
-        }
+    if (URole == "Redaktør")
+    {
+    isHidden = false;
+    }
+    else
+    {
+    isHidden = true;
+    }
     } */
-
-    FigureObj figureo = new FigureObj();
-    LineObj lineo = new LineObj();
-    RectangelObj recto = new RectangelObj();
 
     List<DrawingShapeObj> allObjInList = new List<DrawingShapeObj>();
 
@@ -112,7 +110,9 @@
     protected void ToolChanger(DrawTool tool)
     {
         clicks = 0;
+        SaveGeoDataOnTooChange();
         selectedTool = tool;
+
     }
 
 
@@ -138,15 +138,19 @@
 
         switch (selectedTool)
         {
-            case DrawTool.line:
+            case DrawTool.polygon:
 
                 if (clicks == 1)
                 {
                     await ctx.MoveToAsync(pointOnEnter.X, pointOnEnter.Y);
+                    Xinput.Add(pointOnEnter.X);
+                    Yinput.Add(pointOnEnter.Y);
                 }
                 else
                 {
                     await ctx.LineToAsync(pointOnExit.X, pointOnExit.Y);
+                    Xinput.Add(pointOnEnter.X);
+                    Yinput.Add(pointOnEnter.Y);
 
                     if (fill)
                     {
@@ -160,14 +164,18 @@
                 }
                 await ctx.StrokeAsync();
 
-                allObjInList.Add(new FigureObj());
 
                 break;
 
-            case DrawTool.singleLine:
+            case DrawTool.line:
 
                 await ctx.MoveToAsync(pointOnEnter.X, pointOnEnter.Y);
                 await ctx.LineToAsync(pointOnExit.X, pointOnExit.Y);
+                Xinput.Add(pointOnEnter.X);
+                Yinput.Add(pointOnEnter.Y);
+                Xinput.Add(pointOnExit.X);
+                Yinput.Add(pointOnExit.Y);
+                SaveGeoDataOnTooChange();
                 await ctx.StrokeAsync();
                 await ctx.RestoreAsync();
 
@@ -180,8 +188,6 @@
                     await ctx.SetStrokeStyleAsync(baseStrokeColor);
                 }
 
-                allObjInList.Add(new LineObj());
-
                 break;
 
             case DrawTool.square:
@@ -190,6 +196,8 @@
                            Math.Min(pointOnEnter.Y, pointOnExit.Y),
                            Math.Abs(pointOnEnter.X - pointOnExit.X),
                            Math.Abs(pointOnEnter.Y - pointOnExit.Y));
+
+                InsertCordsSquar(rect);
                 if (fill)
                 {
 
@@ -204,11 +212,89 @@
                     await ctx.SetStrokeStyleAsync(baseStrokeColor);
                 }
 
-                allObjInList.Add(new RectangelObj());
-
                 break;
         }
         await ctx.EndBatchAsync();
+    }
+
+    private async void DrawMap()
+    {
+        bool firstDraw = true;
+        for (int i = 0; i < Components.Count; i++)
+        {
+            await ctx.BeginBatchAsync();
+            for (int j = 0; j < Components[i].Geodata.XInput.Count(); j++)
+            {
+                if (firstDraw == true)
+                {
+                    await ctx.MoveToAsync(Components[i].Geodata.XInput[j], Components[i].Geodata.YInput[j]);
+                    firstDraw = false;
+                }
+                else
+                    await ctx.LineToAsync(Components[i].Geodata.XInput[j], Components[i].Geodata.YInput[j]);
+            }
+            await ctx.EndBatchAsync();
+            firstDraw = true;
+        }
+        await ctx.SetStrokeStyleAsync(baseStrokeColor);
+        await ctx.StrokeAsync();
+
+    }
+
+    private void SaveGeoDataOnTooChange()
+    {
+
+
+        if (Xinput.Count <= 0 || Yinput.Count <= 0)
+        {
+
+        }
+        else
+        {
+            Components.Add(new Component(null, 0, new Geodata(GetTypeOfComponentBYTool(), Xinput.ToArray(), Yinput.ToArray(), 4321)));
+            ClearXandYArrays();
+        }
+
+    }
+
+    private void InsertCordsSquar(RectangleF rect)
+    {
+        Xinput.Add((int)rect.X);
+        Yinput.Add((int)rect.Y);
+        Xinput.Add((int)rect.X);
+        Yinput.Add((int)rect.Y + (int)rect.Height);
+        Xinput.Add((int)rect.X + (int)rect.Width);
+        Yinput.Add((int)rect.Y + (int)rect.Height);
+        Xinput.Add((int)rect.X + (int)rect.Width);
+        Yinput.Add((int)rect.Y);
+        Xinput.Add((int)rect.X);
+        Yinput.Add((int)rect.Y);
+        SaveGeoDataOnTooChange();
+    }
+    private string GetTypeOfComponentBYTool()
+    {
+        string type = "";
+        switch (selectedTool)
+        {
+            case DrawTool.line:
+                type = "LINE";
+                break;
+            case DrawTool.polygon:
+                Xinput.Add(Xinput[0]);
+                Yinput.Add(Yinput[0]);
+                type = "POLYGON";
+                break;
+            case DrawTool.square:
+                type = "POLYGON";
+                break;
+        }
+        return type;
+    }
+
+    private void ClearXandYArrays()
+    {
+        Xinput.Clear();
+        Yinput.Clear();
     }
 
     private void OnColorPickerOpen()
@@ -224,12 +310,13 @@
 
     private void UndoLast()
     {
-        allObjInList.RemoveAt(allObjInList.Count - 1);
+        ctx.ClearRectAsync(0, 0, (double)canvasRef.Width, (double)canvasRef.Height);
+        //allObjInList.RemoveAt(allObjInList.Count - 1);
     }
 
     protected void Save()
     {
         // call API...
-        HttpResponseMessage response = client.PostAsJsonAsync($"https://localhost:7032/Map/Create?layer={Model.Layer}", allObjInList).Result;
+        // HttpResponseMessage response = client.PostAsJsonAsync($"https://localhost:7032/Map/Create?layer={Model.Layer}", allObjInList).Result;
     }
 }

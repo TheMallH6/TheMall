@@ -4,9 +4,7 @@
     {
         line,
         square,
-        circle,
-        fill,
-        singleLine
+        polygon
     }
 }
 
