@@ -64,7 +64,7 @@
         <ColorPicker Title="Stop and go ColorPicker" IsOpened="isOpened" Closed="OnColorPickerClosed" MyColor="@baseColorPicker"></ColorPicker>
         <br />
         <hr />
-        <h3>Insæt lokation.</h3>
+        <h3>Indsæt lokation.</h3>
         @*        <div>
         <button class="drawBTN drawBTNsizeL">Upload ikon</button>
         </div>*@
@@ -130,11 +130,12 @@
     }
 
     //Triggers on buttonclick to change the current tool
-    protected void ToolChanger(DrawTool tool)
+    protected async void ToolChanger(DrawTool tool)
     {
         clicks = 0;
         SaveGeoDataOnTooChange();
         selectedTool = tool;
+        await ctx.ClosePathAsync();
 
     }
 
@@ -150,17 +151,17 @@
     {
         pointOnExit = new Point((int)args.OffsetX, (int)args.OffsetY);
 
-        DrawOnCanvasUsingTool();
+        DrawOnCanvasUsingTool(baseColorPicker);
     }
 
     //Method is trigged on mouse up and it looks what tool we are using.
     //Then we draw on the canvas and save the x and y inpu from mouse to arrays
-    private async void DrawOnCanvasUsingTool()
+    private async void DrawOnCanvasUsingTool(string color)
     {
         await ctx.BeginBatchAsync();
 
         if (fill)
-            await ctx.SetFillStyleAsync(baseColorPicker);
+            await ctx.SetFillStyleAsync(color);
 
         switch (selectedTool)
         {
@@ -168,6 +169,7 @@
 
                 if (clicks == 1)
                 {
+                    await ctx.BeginPathAsync();
                     await ctx.MoveToAsync(pointOnEnter.X, pointOnEnter.Y);
                     Xinput.Add(pointOnEnter.X);
                     Yinput.Add(pointOnEnter.Y);
@@ -224,7 +226,7 @@
                 InsertCordsSquar(rect);
                 if (fill)
                 {
-
+                    
                     await ctx.SetStrokeStyleAsync(baseColorPicker);
                     await ctx.StrokeRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
                     await ctx.FillRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
@@ -250,7 +252,7 @@
             if (mapLayer == maps[i].layer)
             {
                 MapDictionaryOfComps(maps[i]);
-                canvas.DrawMap(ctx, Components, baseStrokeColor,canvasRef.Width,canvasRef.Height);
+                canvas.DrawMap(ctx, Components, baseStrokeColor, canvasRef.Width, canvasRef.Height);
                 Components.Clear();
             }
         }
@@ -347,10 +349,17 @@
     private async void UndoLast()
     {
         Canvas canvas = new Canvas();
-        Debug.WriteLine("list before" + Components.Count());
-        Components.Remove(Components.Last());
-        Debug.WriteLine("list after" + Components.Count());
-        canvas.DrawMap(ctx, Components, baseStrokeColor,canvasRef.Width,canvasRef.Height);
+        if (!Components.Any())
+        {
+            UndoAll();
+        }
+        else
+        {
+            Components.Remove(Components.Last());
+            canvas.DrawMap(ctx, Components, baseStrokeColor, canvasRef.Width, canvasRef.Height);
+        }
+
+
     }
     private async void UndoAll()
     {
