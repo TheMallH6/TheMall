@@ -62,7 +62,7 @@
                 </label>
             </div>
         </EditForm>
-        <button class="drawBTN drawBTNsizeL" @onclick="Save" style="align-content:center; margin-top: 4%;">Opret</button>
+        <button hidden="@isHidden" class="drawBTN drawBTNsizeL" @onclick="Save" style="align-content:center; margin-top: 4%;">Opret</button>
     </div>
 </div>
 
@@ -84,37 +84,18 @@
     private bool fill;
     private int layer;
     private int mapLayer;
-
-
-    public string UName { get; set; }
-    public string URole { get; set; }
     
-    /* protected override void OnInitialized()
-    {
-    UName = AppState.FuName.UserName;
-    URole = AppState.FuRole.Role;
-    if (URole == "Redaktør")
-    {
-    isHidden = false;
-    }
-    else
-    {
-    isHidden = true;
-    }
-    } */
-
-S
     protected override void OnInitialized()
     {
-        if (AppState.Credentials.Role == "Redaktør")
+    if (AppState.Credentials.Role == "Redaktør")
         {
             isHidden = false;
         }
         else
         {
             isHidden = true;
-        }
-    }
+        } 
+    } 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

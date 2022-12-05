@@ -4,7 +4,7 @@
 @inject ISessionManager sManager;
 @inject AppState state;
 
-<select @bind="SelectedMallId" class="form-control selectpicker">
+<select @bind="SelectedMallId" class="form-control selectpicker mall-selector">
     <option id="map">Vælg StorCenter</option>
     @foreach (var mall in malls)
     { 
@@ -35,7 +35,7 @@
     protected override async Task OnInitializedAsync()
     {
         RestCaller caller = new RestCaller();
-        malls = await caller.GetMalls(state.Credentials.FirmID);
+   //     malls = await caller.GetMalls(state.Credentials.FirmID);
    
     }
 }

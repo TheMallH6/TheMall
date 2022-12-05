@@ -48,20 +48,6 @@
                 }
             </select>
         </div>
-        @*  <div>
-        <label for="map">Vælg Kort: </label>
-        <select class="form-control selectpicker" @bind="Model.Layer">
-        <option id="map">----</option>
-        @foreach (var item in mapObjInList)
-        {
-        <option value="@item.MallID">@item.Layer</option>
-        }
-        </select>
-        </div>
-        <br />
-        <div>
-        <button class="drawBTN drawBTNsizeL" @onclick="ShowMap">Vis</button>
-        </div>*@
     </div>
 </div>
 
@@ -80,7 +66,7 @@
     {
         sManager.OnChange += UpdateMapList;
 
-        if (AppState.Credentials.Role == "Redaktør")
+    if (AppState.Credentials.Role != "Redaktør")
         {
             isHidden = false;
         }
