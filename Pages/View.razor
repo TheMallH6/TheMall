@@ -1,5 +1,8 @@
 ﻿@page "/view"
 
+@using System.Net.Http.Json;
+@using System.Net.Http.Headers;
+@using System.Text.Json;
 @using TheMall.Data.CanvasData
 @using System.Drawing
 @using Blazor.Extensions
@@ -16,7 +19,7 @@
 <h3>Hej @UName</h3>
 
 <div style="display: inline-block;">
-    <div id="drawCanvas" class="canvasStyle" tabindex="0" style="float: left;">
+    <div class="canvasStyle" tabindex="0" style="float: left;">
         <BECanvas Width="600" Height="500" @ref="canvasRef" />
     </div>
 
@@ -35,7 +38,7 @@
         <br />
         <div>
             <label for="map">Vælg Kort: </label>
-            <select class="form-control selectpicker" @bind="Model.Layer">
+            <select class="form-control selectpicker" @bind="MapModel.Layer">
                 <option id="map">----</option>
                 @foreach (var item in mapObjInList)
                 {
@@ -60,8 +63,10 @@
     private BECanvasComponent? canvasRef;
     bool isHidden = true;
 
+
     //private Mall Model2 = new Mall();
     //private Map Model = new Map();
+
 
     //List<Mall> mallObjInList = new List<Mall>();
     //List<Map> mapObjInList = new List<Map>();
@@ -75,22 +80,53 @@
         UName = AppState.UserName;
         URole = AppState.Credentials.Role;
 
+
         if (URole == "Redaktør")
         {
         isHidden = false;
         }
         else
         {
-          isHidden = true;
-        }
-       await GetListOfMall();
+        isHidden = true;
+    }*/
+        await GetListOfMall(); 
     }
 
     protected async Task GetListOfMall()
     {
-        // mallObjInList = API call... to get all malls based on FId
 
-        await GetListOfMap();
+
+        // convert response data to JsonElement which can handle any JSON data
+        try
+        {
+
+            var result = await client.GetStringAsync($"https://localhost:7032/Mall/GetMalls");
+
+            var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+            var jsonData = JsonSerializer.Deserialize<List<Mall>>(result, options);
+           
+
+            foreach (Mall item in jsonData)
+            {
+                Mall a = new Mall();
+                a.FirmID = item.FirmID;
+                a.Location = item.Location;
+
+                mallObjInList.Add(a);
+            }
+
+
+            await GetListOfMap();
+
+        }
+        catch (Exception e)
+        {
+            string eee = e.Message.ToString();
+            
+        }
     }
 
     protected async Task GetListOfMap()
@@ -101,13 +137,12 @@
 
     protected async Task ShowMap()
     {
-        // call API...
         //var result = await client.GetFromJsonAsync($"https://localhost:7032/Map/GetByLocation?MallID={Model.Layer}", null);
+
     }
 
     protected async Task DeleteMap()
     {
-        // call API...
         //var result = await client.PostAsJsonAsync<object>($"https://localhost:7032/Map/Delete?MallID={Model.Layer}", null);
     }
 }

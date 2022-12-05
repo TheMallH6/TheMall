@@ -21,7 +21,7 @@
     <br />
     <div class="form-group">
         <label for="pass">Kodeord: </label>
-        <InputText Id="pass" Class="form-control formLog" @bind-Value="@Model.Password"></InputText>
+        <InputText Id="pass" type="password" Class="form-control formLog" @bind-Value="@Model.Password"></InputText>
         <ValidationMessage For="@(() => Model.Password)" />
     </div>
     <br />
