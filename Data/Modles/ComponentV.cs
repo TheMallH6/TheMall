@@ -1,8 +1,8 @@
 ﻿namespace TheMall.Data.Modles
 {
-    public class Component
+    public class ComponentV
     {
-        public Component(string description, int zIndex, Geodata geodata)
+        public ComponentV(string description, int zIndex, GeodataV geodata)
         {
             Description = description;
             ZIndex = zIndex;
@@ -11,6 +11,6 @@
 
         public string Description { get; set; }
         public int ZIndex { get; set; }
-        public Geodata Geodata { get; set; }
+        public GeodataV Geodata { get; set; }
     }
 }

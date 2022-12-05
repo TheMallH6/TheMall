@@ -1,5 +1,6 @@
 ﻿@page "/create"
 
+@using System.Text.Json
 @using TheMall.Data.CanvasData
 @using System.Drawing
 @using Blazor.Extensions
@@ -9,12 +10,14 @@
 @using BlazorColorPicker
 @using System.Collections.Generic;
 @using TheMall.Data;
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Linq;
 @using TheMall.Data.Modles;
 
 @inject AppState AppState
-@inject HttpClient client
+@inject ISessionManager sManager;
 
-<h3>Hej @UName</h3>
+<h3>Map over:  @UName</h3>
 
 <div style="display: inline-block;">
     <div id="drawCanvas" class="canvasStyle" tabindex="0" @onmousedown="MouseDown" @onmouseup="MouseUp" style="float: left;">
@@ -23,6 +26,17 @@
 
     <div style="float: right; width: 300px; margin-left: 30px;">
         <h3>Skitse plantegning.</h3>
+        <div>
+            <button class="drawBTN drawBTNsizeL" @onclick="DrawMap" style="align-content:center">Tegn dit kort</button>
+        </div>
+        <div>
+            <select @bind="mapLayer" class="mall-selector">
+                @foreach (var map in maps)
+                {
+                    <option value="@map.layer">@map.layer</option>
+                }
+            </select>
+        </div>
         <div>
             <button class="drawBTN drawBTNsizeL" @onclick="() => ToolChanger(DrawTool.polygon)" style="align-content:center">Tegn en figur</button>
         </div>
@@ -47,22 +61,22 @@
         <br />
         <hr />
         <h3>Insæt lokation.</h3>
-        <div>
-            <button class="drawBTN drawBTNsizeL">Upload ikon</button>
-        </div>
-        <div>
-            <button class="drawBTN drawBTNsizeL" @onclick="DrawMap">Skriv Tekst</button>
-        </div>
-        @*        <EditForm Model="@Model">
-        <div class="form-group">
-        <label for="name">
-        Etage:
-        <InputNumber Id="layer" Class="form-control formLay" @bind-Value="@Model.Layer"></InputNumber>
-        </label>
-        </div>
+        @*        <div>
+        <button class="drawBTN drawBTNsizeL">Upload ikon</button>
+        </div>*@
+        @*        <div>
+        <button class="drawBTN drawBTNsizeL" @onclick="">Skriv Tekst</button>
+        </div>*@
+        <EditForm Model="layer">
+            <div class="form-group">
+                <label for="name">
+                    Etage:
+                    <InputNumber Id="layer" Class="form-control formLay" @bind-Value="@layer"></InputNumber>
+                </label>
+            </div>
 
-        </EditForm>*@
-        <button hidden="@isHidden" class="drawBTN drawBTNsizeL" @onclick="Save" style="align-content:center; margin-top: 4%;">Opret</button>
+        </EditForm>
+        <button class="drawBTN drawBTNsizeL" @onclick="Save" style="align-content:center; margin-top: 4%;">Opret</button>
     </div>
 </div>
 
@@ -71,17 +85,20 @@
     private Point pointOnEnter;
     private Point pointOnExit;
     private BECanvasComponent? canvasRef;
-    private List<Component> Components { get; set; } = new List<Component>();
+    private List<ComponentV> Components { get; set; } = new List<ComponentV>();
     private List<int> Xinput { get; set; } = new List<int>();
     private List<int> Yinput { get; set; } = new List<int>();
+    private List<Map> maps { get; set; } = new List<Map>();
     private Canvas2DContext ctx;
+    private RestCaller restCaller { get; set; } = new RestCaller();
     private DrawTool selectedTool = DrawTool.polygon;
-    private object drawing;
     bool isOpened = false;
     bool isHidden = true;
     string baseStrokeColor = "#777";
     string baseColorPicker = "#D12B27";
     private bool fill;
+    private int layer;
+    private int mapLayer;
 
     public string UName { get; set; }
     public string URole { get; set; }
@@ -100,7 +117,16 @@
     }
     } */
 
-    List<DrawingShapeObj> allObjInList = new List<DrawingShapeObj>();
+    protected override void OnInitialized()
+    {
+        sManager.OnChange += UpdateMapList;
+    }
+
+    private async void UpdateMapList()
+    {
+        maps = await restCaller.GetMap(sManager.GetKey("MallID"));
+        StateHasChanged();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -114,7 +140,6 @@
         selectedTool = tool;
 
     }
-
 
     private async void MouseDown(MouseEventArgs args)
     {
@@ -219,26 +244,53 @@
 
     private async void DrawMap()
     {
+        Components.Clear();
         bool firstDraw = true;
-        for (int i = 0; i < Components.Count; i++)
+        for (int i = 0; i < maps.Count; i++)
         {
-            await ctx.BeginBatchAsync();
-            for (int j = 0; j < Components[i].Geodata.XInput.Count(); j++)
+            if (mapLayer == maps[i].layer)
             {
-                if (firstDraw == true)
+                MapDictionaryOfComps(maps[i]);
+                for (int j = 0; j < Components.Count; j++)
                 {
-                    await ctx.MoveToAsync(Components[i].Geodata.XInput[j], Components[i].Geodata.YInput[j]);
-                    firstDraw = false;
+                    await ctx.BeginBatchAsync();
+                    for (int x = 0; x < Components[j].Geodata.XInput.Length; x++)
+                    {
+                        if (firstDraw == true)
+                        {
+                            await ctx.MoveToAsync(Components[j].Geodata.XInput[x], Components[j].Geodata.YInput[x]);
+                            firstDraw = false;
+                        }
+                        else
+                            await ctx.LineToAsync(Components[j].Geodata.XInput[x], Components[j].Geodata.YInput[x]);
+                    }
+                    await ctx.EndBatchAsync();
+                    firstDraw = true;
                 }
-                else
-                    await ctx.LineToAsync(Components[i].Geodata.XInput[j], Components[i].Geodata.YInput[j]);
             }
-            await ctx.EndBatchAsync();
-            firstDraw = true;
+            await ctx.StrokeAsync();
+            await ctx.SetStrokeStyleAsync(baseStrokeColor);
         }
-        await ctx.SetStrokeStyleAsync(baseStrokeColor);
-        await ctx.StrokeAsync();
 
+    }
+
+    private void MapDictionaryOfComps(Map map)
+    {
+        Components.Clear();
+        foreach (var item in map.components)
+        {
+            var geodata = item.Value.ToString();
+            var options = new JsonSerializerSettings()
+                {
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    NullValueHandling = NullValueHandling.Ignore,
+                };
+            var components = JsonConvert.DeserializeObject<IEnumerable<ComponentV>>(geodata, options);
+            foreach (var item2 in components)
+            {
+                Components.Add(new ComponentV(item2.Description, item2.ZIndex, item2.Geodata));
+            }
+        }
     }
 
     private void SaveGeoDataOnTooChange()
@@ -251,7 +303,7 @@
         }
         else
         {
-            Components.Add(new Component(null, 0, new Geodata(GetTypeOfComponentBYTool(), Xinput.ToArray(), Yinput.ToArray(), 4321)));
+            Components.Add(new ComponentV("", 0, new GeodataV(GetTypeOfComponentBYTool(), Xinput.ToArray(), Yinput.ToArray(), 4321)));
             ClearXandYArrays();
         }
 
@@ -271,6 +323,7 @@
         Yinput.Add((int)rect.Y);
         SaveGeoDataOnTooChange();
     }
+
     private string GetTypeOfComponentBYTool()
     {
         string type = "";
@@ -308,15 +361,20 @@
         isOpened = false;
     }
 
-    private void UndoLast()
+    private async void UndoLast()
     {
         ctx.ClearRectAsync(0, 0, (double)canvasRef.Width, (double)canvasRef.Height);
         //allObjInList.RemoveAt(allObjInList.Count - 1);
     }
-
-    protected void Save()
+    private MapV CreateMap()
     {
-        // call API...
-        // HttpResponseMessage response = client.PostAsJsonAsync($"https://localhost:7032/Map/Create?layer={Model.Layer}", allObjInList).Result;
+        MapV map = new MapV(sManager.GetKey("MallID"), layer, Components);
+        return map;
+    }
+
+    protected async void Save()
+    {
+        await restCaller.InsertMap(CreateMap());
+        Components.Clear();
     }
 }

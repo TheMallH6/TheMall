@@ -2,15 +2,13 @@
 {
     public class Map
     {
-        public Map(int mallId, int layer, List<Component> components)
+        public Map(int layer, Dictionary<string, object> components)
         {
-            MallId = mallId;
-            Layer = layer;
-            Components = components;
+            this.layer = layer;
+            this.components = components;
         }
 
-        public int MallId { get; set; }
-        public int Layer { get; set; }
-        public List<Component> Components { get; set; }
+        public int layer { get; set; }
+        public Dictionary<string,object> components { get; set; }
     }
 }
