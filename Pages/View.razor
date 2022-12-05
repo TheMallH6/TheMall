@@ -9,11 +9,11 @@
 @using BlazorColorPicker
 @using System.Collections.Generic;
 @using TheMall.Data;
+@using TheMall.Data.Modles;
 
 @inject AppState AppState
-@inject HttpClient client
 
-<h3>Hej @UName</h3>
+<h3>Hej @AppState.UserName</h3>
 
 <div style="display: inline-block;">
     <div id="drawCanvas" class="canvasStyle" tabindex="0" style="float: left;">
@@ -24,16 +24,9 @@
         <h3>Vælg og vis kort.</h3>
          <div>
             <label for="mall">Vælg Storcenter: </label>
-@*            <select class="form-control selectpicker" @bind="Model2.Location">
-                <option id="mall">----</option>
-                @foreach (var item in mallObjInList)
-                {
-                    <option value="@item.FirmID">@item.Location</option>
-                }
-            </select>
         </div>
         <br />
-        <div>
+      @*  <div>
             <label for="map">Vælg Kort: </label>
             <select class="form-control selectpicker" @bind="Model.Layer">
                 <option id="map">----</option>
@@ -45,8 +38,8 @@
         </div>
         <br />
         <div>
-            <button class="drawBTN drawBTNsizeL" @onclick="ShowMap">Vis</button>*@
-        </div>
+            <button class="drawBTN drawBTNsizeL" @onclick="ShowMap">Vis</button>
+        </div>*@
         <br />
         <hr />
         <h3 hidden="@isHidden">Slet kort.</h3>
@@ -60,22 +53,9 @@
     private BECanvasComponent? canvasRef;
     bool isHidden = true;
 
-    //private Mall Model2 = new Mall();
-    //private Map Model = new Map();
-
-    //List<Mall> mallObjInList = new List<Mall>();
-    //List<Map> mapObjInList = new List<Map>();
-
-    public string UName { get; set; }
-    public string URole { get; set; }
-    public string FId { get; set; }
-
     protected override async Task OnInitializedAsync()
     {
-        UName = AppState.UserName;
-        URole = AppState.Credentials.Role;
-
-        if (URole == "Redaktør")
+        if (AppState.Credentials.Role == "Redaktør")
         {
         isHidden = false;
         }
@@ -83,21 +63,7 @@
         {
           isHidden = true;
         }
-       await GetListOfMall();
     }
-
-    protected async Task GetListOfMall()
-    {
-        // mallObjInList = API call... to get all malls based on FId
-
-        await GetListOfMap();
-    }
-
-    protected async Task GetListOfMap()
-    {
-       //  mapObjInList = API call... to get all maps based on MallID
-    }
-    
 
     protected async Task ShowMap()
     {

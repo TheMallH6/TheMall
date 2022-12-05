@@ -13,11 +13,12 @@
 @using Newtonsoft.Json;
 @using Newtonsoft.Json.Linq;
 @using TheMall.Data.Modles;
+@using System.Diagnostics;
 
 @inject AppState AppState
 @inject ISessionManager sManager;
 
-<h3>Map over:  @UName</h3>
+<h3>Hej: @AppState.UserName</h3>
 
 <div style="display: inline-block;">
     <div id="drawCanvas" class="canvasStyle" tabindex="0" @onmousedown="MouseDown" @onmouseup="MouseUp" style="float: left;">
@@ -48,6 +49,9 @@
         </div>
         <div>
             <button class="drawBTN drawBTNsizeS" @onclick="UndoLast" style="align-content:center">Fortryd</button>
+        </div>
+        <div>
+            <button class="drawBTN drawBTNsizeS" @onclick="UndoAll" style="align-content:center">Slet alt</button>
         </div>
         <input id="fillBox" type="checkbox" @bind-value="@fill" />
         <label for="fillBox"> Anvend farve</label>
@@ -100,28 +104,20 @@
     private int layer;
     private int mapLayer;
 
-    public string UName { get; set; }
-    public string URole { get; set; }
-    /* protected override void OnInitialized()
-    {
-    UName = AppState.FuName.UserName;
-    URole = AppState.FuRole.Role;
-
-    if (URole == "Redaktør")
-    {
-    isHidden = false;
-    }
-    else
-    {
-    isHidden = true;
-    }
-    } */
-
     protected override void OnInitialized()
     {
         sManager.OnChange += UpdateMapList;
+        if (AppState.Credentials.Role == "Redaktør")
+        {
+            isHidden = false;
+        }
+        else
+        {
+            isHidden = true;
+        }
     }
 
+    //Updates the map list when the OnChange event in sessionmanager changes.
     private async void UpdateMapList()
     {
         maps = await restCaller.GetMap(sManager.GetKey("MallID"));
@@ -133,6 +129,7 @@
         this.ctx = await canvasRef.CreateCanvas2DAsync();
     }
 
+    //Triggers on buttonclick to change the current tool
     protected void ToolChanger(DrawTool tool)
     {
         clicks = 0;
@@ -141,20 +138,24 @@
 
     }
 
+    //Triggers on mouseDown find the locatio of the mouse on press down
     private async void MouseDown(MouseEventArgs args)
     {
         clicks++;
         pointOnEnter = new Point((int)args.OffsetX, (int)args.OffsetY);
     }
 
+    //Triggers on mouseup and find the location of mouse up and call drawoncanvas
     private async void MouseUp(MouseEventArgs args)
     {
         pointOnExit = new Point((int)args.OffsetX, (int)args.OffsetY);
 
-        DrawingObjectByTool();
+        DrawOnCanvasUsingTool();
     }
 
-    private async void DrawingObjectByTool()
+    //Method is trigged on mouse up and it looks what tool we are using.
+    //Then we draw on the canvas and save the x and y inpu from mouse to arrays
+    private async void DrawOnCanvasUsingTool()
     {
         await ctx.BeginBatchAsync();
 
@@ -188,8 +189,6 @@
                     }
                 }
                 await ctx.StrokeAsync();
-
-
                 break;
 
             case DrawTool.line:
@@ -226,15 +225,15 @@
                 if (fill)
                 {
 
+                    await ctx.SetStrokeStyleAsync(baseColorPicker);
                     await ctx.StrokeRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
                     await ctx.FillRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
-                    await ctx.SetStrokeStyleAsync(baseColorPicker);
 
                 }
                 else
                 {
-                    await ctx.StrokeRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
                     await ctx.SetStrokeStyleAsync(baseStrokeColor);
+                    await ctx.StrokeRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
                 }
 
                 break;
@@ -242,38 +241,22 @@
         await ctx.EndBatchAsync();
     }
 
-    private async void DrawMap()
+    //Draw map using canvas.drawmap
+    private void DrawMap()
     {
-        Components.Clear();
-        bool firstDraw = true;
+        Canvas canvas = new Canvas();
         for (int i = 0; i < maps.Count; i++)
         {
             if (mapLayer == maps[i].layer)
             {
                 MapDictionaryOfComps(maps[i]);
-                for (int j = 0; j < Components.Count; j++)
-                {
-                    await ctx.BeginBatchAsync();
-                    for (int x = 0; x < Components[j].Geodata.XInput.Length; x++)
-                    {
-                        if (firstDraw == true)
-                        {
-                            await ctx.MoveToAsync(Components[j].Geodata.XInput[x], Components[j].Geodata.YInput[x]);
-                            firstDraw = false;
-                        }
-                        else
-                            await ctx.LineToAsync(Components[j].Geodata.XInput[x], Components[j].Geodata.YInput[x]);
-                    }
-                    await ctx.EndBatchAsync();
-                    firstDraw = true;
-                }
+                canvas.DrawMap(ctx, Components, baseStrokeColor,canvasRef.Width,canvasRef.Height);
+                Components.Clear();
             }
-            await ctx.StrokeAsync();
-            await ctx.SetStrokeStyleAsync(baseStrokeColor);
         }
-
     }
 
+    //Takes the map objects Dictonary<string,object> and converts the objects to ComponentV
     private void MapDictionaryOfComps(Map map)
     {
         Components.Clear();
@@ -293,22 +276,17 @@
         }
     }
 
+    //When drawing is done save the object to Components property
     private void SaveGeoDataOnTooChange()
     {
-
-
-        if (Xinput.Count <= 0 || Yinput.Count <= 0)
-        {
-
-        }
-        else
+        if (Xinput.Count > 0 || Yinput.Count > 0)
         {
             Components.Add(new ComponentV("", 0, new GeodataV(GetTypeOfComponentBYTool(), Xinput.ToArray(), Yinput.ToArray(), 4321)));
             ClearXandYArrays();
         }
-
     }
 
+    //Creas squar and save it to Components Property
     private void InsertCordsSquar(RectangleF rect)
     {
         Xinput.Add((int)rect.X);
@@ -324,6 +302,7 @@
         SaveGeoDataOnTooChange();
     }
 
+    //Get the type of tool as string.
     private string GetTypeOfComponentBYTool()
     {
         string type = "";
@@ -344,27 +323,39 @@
         return type;
     }
 
+    //Clear the x and y arrays
     private void ClearXandYArrays()
     {
         Xinput.Clear();
         Yinput.Clear();
     }
 
+    //On color picker open
     private void OnColorPickerOpen()
     {
         isOpened = true;
     }
 
+    //On color picker close, we change the base color value to new value
     private void OnColorPickerClosed(string value)
     {
         baseColorPicker = value;
         isOpened = false;
     }
 
+    //Undo the last change and draw the map agien
     private async void UndoLast()
     {
+        Canvas canvas = new Canvas();
+        Debug.WriteLine("list before" + Components.Count());
+        Components.Remove(Components.Last());
+        Debug.WriteLine("list after" + Components.Count());
+        canvas.DrawMap(ctx, Components, baseStrokeColor,canvasRef.Width,canvasRef.Height);
+    }
+    private async void UndoAll()
+    {
         ctx.ClearRectAsync(0, 0, (double)canvasRef.Width, (double)canvasRef.Height);
-        //allObjInList.RemoveAt(allObjInList.Count - 1);
+        Components.Clear();
     }
     private MapV CreateMap()
     {

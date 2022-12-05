@@ -1,12 +1,10 @@
-﻿using TheMall.Data.Modles;
-
-namespace TheMall.Data
+﻿namespace TheMall.Data.Modles
 {
     public class AppState
     {
         public SessionCredentials Credentials { get; set; }
 
-        public string UserName { get; set; }    
+        public string UserName { get; set; }
 
     }
 }

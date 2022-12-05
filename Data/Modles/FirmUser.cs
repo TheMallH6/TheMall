@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TheMall.Data
+namespace TheMall.Data.Modles
 {
     public class FirmUser
     {

@@ -62,7 +62,7 @@ namespace TheMall.Data
         }
 
         /// <summary>
-        /// Get sessionCredentials from backend database
+        /// Get all the malls from the database by cvrnr
         /// </summary>
         /// <param name="cvrnr"></param>
         /// <returns></returns>
@@ -76,10 +76,15 @@ namespace TheMall.Data
             return malls;
         }
 
-
+        /// <summary>
+        /// Get sessionCredentials from backend database by validating username and password
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="Password"></param>
+        /// <returns></returns>
         public async Task<SessionCredentials> GetLoginCredentiels(string userName, string Password)
         {
-            string uri = $"{baseUri}Validate/Login?uname={userName}&password={Password.ToSha256()}";
+            Uri uri = new Uri($"{baseUri}Validate/Login?uname={userName}&password={Password.ToSha256()}");
             var result = await client.PostAsJsonAsync<SessionCredentials>(uri, null);
             var res = result.Content.ReadAsStringAsync().Result;
             SessionCredentials sessionCredentials = JsonSerializer.Deserialize<SessionCredentials>(res);
