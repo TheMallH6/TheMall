@@ -61,7 +61,6 @@
                     <InputNumber Id="layer" Class="form-control formLay" @bind-Value="@layer"></InputNumber>
                 </label>
             </div>
-
         </EditForm>
         <button class="drawBTN drawBTNsizeL" @onclick="Save" style="align-content:center; margin-top: 4%;">Opret</button>
     </div>
@@ -86,6 +85,25 @@
     private int layer;
     private int mapLayer;
 
+
+    public string UName { get; set; }
+    public string URole { get; set; }
+    
+    /* protected override void OnInitialized()
+    {
+    UName = AppState.FuName.UserName;
+    URole = AppState.FuRole.Role;
+    if (URole == "Redaktør")
+    {
+    isHidden = false;
+    }
+    else
+    {
+    isHidden = true;
+    }
+    } */
+
+S
     protected override void OnInitialized()
     {
         if (AppState.Credentials.Role == "Redaktør")

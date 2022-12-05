@@ -1,5 +1,6 @@
 ﻿@page "/view"
 
+
 @using Newtonsoft.Json
 @using TheMall.Data.CanvasData
 @using System.Drawing
@@ -26,6 +27,7 @@
         <h3>Vælg og vis kort.</h3>
         <br />
         <div>
+
             <button class="drawBTN drawBTNsizeL" @onclick="BeginDrawMap" style="align-content:center">Vis dit kort</button>
         </div>
         <div>
@@ -84,6 +86,7 @@
         }
         else
         {
+
             isHidden = true;
         }
 
@@ -121,16 +124,13 @@
             {
                 MapDictionaryOfComps(maps[i]);
                 canvas.DrawMap(ctx, Components, baseStrokeColor, canvasRef.Width, canvasRef.Height);
-
             }
         }
-
     }
 
     //Takes the map objects Dictonary<string,object> and converts the objects to ComponentV
     private void MapDictionaryOfComps(Map map)
     {
-
         foreach (var item in map.components)
         {
             var geodata = item.Value.ToString();
@@ -145,5 +145,6 @@
                 Components.Add(new ComponentV(item2.Description, item2.ZIndex, item2.Geodata));
             }
         }
+
     }
 }
