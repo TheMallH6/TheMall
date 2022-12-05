@@ -10,7 +10,7 @@
 @inject HttpClient client
 
 <EditForm Model="@Model" OnValidSubmit="@HandleValidLogin" OnInvalidSubmit="@HandleInvalidLogin">
- 
+
     <DataAnnotationsValidator />
 
     <div class="form-group">
@@ -38,33 +38,25 @@
 
     protected async Task HandleValidLogin()
     {
+        RestCaller restCaller = new RestCaller();
+
         StatusMessage = "Vi tjekker lige dit login...";
 
-        string? upassword = Model.Password;
+        var sessionCredentials =  await restCaller.GetLoginCredentiels(Model.UserName, Model.Password);
 
-        var sha256 = SHA256.Create();
-        
-        string hashedPassWord = BitConverter.ToString(sha256.ComputeHash(Encoding.UTF8.GetBytes(upassword))).Replace("-", "");
- 
-        var result = await client.PostAsJsonAsync<object>($"https://localhost:7032/Validate/Login?uname={Model.UserName}&password={hashedPassWord}", null);
-        await OnInitializedAsync();
-
-
-   if (Model.Role != null && Model.SessionKey != null && Model.FirmID < 0)
+        if (sessionCredentials.Role != null && sessionCredentials.SessionKey != null && sessionCredentials.FirmID > 0)
         {
 
             // Setting objects before navigating
-            AppState.FuName = new FirmUser { UserName = Model.UserName };
-            AppState.FuRole = new FirmUser { Role = Model.Role };
-            AppState.FuFId = new FirmUser { FirmID = Model.FirmID };
-
+            AppState.Credentials = sessionCredentials;
+            AppState.UserName = Model.UserName;
             // Navigate to another page
             NavManager.NavigateTo("/create");
         }
         else
         {
             StatusMessage = "Ingen Adgang";
-        } 
+        }
     }
 
     protected void HandleInvalidLogin()

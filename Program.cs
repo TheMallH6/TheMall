@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using TheMall;
 using TheMall.Data;
+using TheMall.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +11,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<AppState>();
-
+builder.Services.AddScoped<ISessionManager,SessionManager>(); // We have added the SessionManager class the the scope so we can DI inject the class using @Inject ISessionManager
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

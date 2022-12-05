@@ -27,7 +27,7 @@
         <h3>Vælg og vis kort.</h3>
          <div>
             <label for="mall">Vælg Storcenter: </label>
-            <select class="form-control selectpicker" @bind="MallModel.Location">
+@*            <select class="form-control selectpicker" @bind="Model2.Location">
                 <option id="mall">----</option>
                 @foreach (var item in mallObjInList)
                 {
@@ -48,7 +48,7 @@
         </div>
         <br />
         <div>
-            <button class="drawBTN drawBTNsizeL" @onclick="ShowMap">Vis</button>
+            <button class="drawBTN drawBTNsizeL" @onclick="ShowMap">Vis</button>*@
         </div>
         <br />
         <hr />
@@ -63,11 +63,13 @@
     private BECanvasComponent? canvasRef;
     bool isHidden = true;
 
-    private Mall MallModel = new Mall();
-    private Map MapModel = new Map();
 
-    List<Mall> mallObjInList = new List<Mall>();
-    List<Map> mapObjInList = new List<Map>();
+    //private Mall Model2 = new Mall();
+    //private Map Model = new Map();
+
+
+    //List<Mall> mallObjInList = new List<Mall>();
+    //List<Map> mapObjInList = new List<Map>();
 
     public string UName { get; set; }
     public string URole { get; set; }
@@ -75,8 +77,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        /* UName = AppState.FuName.UserName;
-        URole = AppState.FuRole.Role;
+        UName = AppState.UserName;
+        URole = AppState.Credentials.Role;
+
 
         if (URole == "Redaktør")
         {
@@ -134,13 +137,12 @@
 
     protected async Task ShowMap()
     {
-        // call API...
-        var result = await client.GetFromJsonAsync($"https://localhost:7032/Map/GetByLocation?MallID={MapModel.Layer}", null);
+        //var result = await client.GetFromJsonAsync($"https://localhost:7032/Map/GetByLocation?MallID={Model.Layer}", null);
+
     }
 
     protected async Task DeleteMap()
     {
-        // call API...
-        var result = await client.PostAsJsonAsync<object>($"https://localhost:7032/Map/Delete?MallID={MapModel.Layer}", null);
+        //var result = await client.PostAsJsonAsync<object>($"https://localhost:7032/Map/Delete?MallID={Model.Layer}", null);
     }
 }

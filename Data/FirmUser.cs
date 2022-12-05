@@ -4,16 +4,23 @@ namespace TheMall.Data
 {
     public class FirmUser
     {
+
         [Required]
         public string? UserName { get; set; }
 
         [Required]
         public string? Password { get; set; }
 
-        public string? Role { get; set; }
 
-        public string? SessionKey { get; set; }
+        public FirmUser(string? userName, string? password)
+        {
+            UserName = userName;
+            Password = password;
+        }
 
-        public int FirmID { get; set; }
+        public FirmUser()
+        {
+
+        }
     }
 }

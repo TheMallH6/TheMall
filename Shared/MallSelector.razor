@@ -1,0 +1,33 @@
+﻿@using TheMall.Data
+@using TheMall.Data.Modles
+
+@inject ISessionManager sManager;
+@inject AppState state;
+
+<select @bind="SelectedMallId" class="mall-selector">
+    @foreach (var mall in malls)
+    { 
+        <option value="@mall.id">@mall.location</option>
+    }
+</select>
+
+@code {
+    string mallName = "";
+    int mallId = -1;
+    private int selectedMallId;
+    private int SelectedMallId{
+        get{ return selectedMallId; }
+        set{ 
+            selectedMallId = value;
+            sManager.SetMall(selectedMallId, malls.Find(x => x.id.Equals(selectedMallId))?.location);
+        }
+    }
+
+    List<Mall> malls = new List<Mall>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        RestCaller caller = new RestCaller();
+        malls = await caller.GetMalls(state.Credentials.FirmID);
+    }
+}
