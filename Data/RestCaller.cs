@@ -21,9 +21,14 @@ namespace TheMall.Data
             client.DefaultRequestHeaders.Add("ApiKey", apikey);
         }
 
-        public async Task<List<Map>> GetMap(int? mallid)
+        /// <summary>
+        /// Get a list of maps from the database by mallid
+        /// </summary>
+        /// <param name="mallid"></param>
+        /// <returns></returns>
+        public async Task<List<Map>> GetMap(int mallid)
         {
-            if (mallid == null)
+            if (mallid == 0)
                 return null;
             Uri uri = new Uri(baseUri + "Map/Get?mallid=" + mallid);
             HttpRequestMessage request = CreateaRequestMessage(uri, HttpMethod.Get);

@@ -4,7 +4,7 @@
 @inject ISessionManager sManager;
 @inject AppState state;
 
-<select @bind="SelectedMallId" class="mall-selector">
+<select @bind="SelectedMallId" class="form-control selectpicker">
     @foreach (var mall in malls)
     { 
         <option value="@mall.id">@mall.location</option>
