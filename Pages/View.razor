@@ -26,16 +26,23 @@
         <h3>Vælg og vis kort.</h3>
         <br />
         <div>
-            <button class="drawBTN drawBTNsizeL" @onclick="DrawMap" style="align-content:center">Vis dit kort</button>
+            <button class="drawBTN drawBTNsizeL" @onclick="BeginDrawMap" style="align-content:center">Vis dit kort</button>
         </div>
         <div>
             <label for="mall">Vælg Etage: </label>
         </div>
         <div>
             <select @bind="mapLayer" class="form-control selectpicker">
-                @foreach (var map in maps)
+                @if (maps != null)
                 {
-                    <option value="@map.layer">@map.layer</option>
+                    @foreach (var map in maps)
+                    {
+                        @if (map == null)
+                        {
+                            continue;
+                        }
+                        <option value="@map.layer">@map.layer</option>
+                    }
                 }
             </select>
         </div>
@@ -66,9 +73,11 @@
     private Canvas2DContext ctx;
     string baseStrokeColor = "#777";
 
+
     protected override async Task OnInitializedAsync()
     {
         sManager.OnChange += UpdateMapList;
+
         if (AppState.Credentials.Role == "Redaktør")
         {
             isHidden = false;
@@ -77,6 +86,17 @@
         {
             isHidden = true;
         }
+
+        try
+        {
+            UpdateMapList();
+        }
+        catch (Exception)
+        {
+
+
+        }
+
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -91,24 +111,26 @@
     }
 
     //Draw map using canvas.drawmap
-    private void DrawMap()
+    private void BeginDrawMap()
     {
         Canvas canvas = new Canvas();
+        Components.Clear();
         for (int i = 0; i < maps.Count; i++)
         {
             if (mapLayer == maps[i].layer)
             {
                 MapDictionaryOfComps(maps[i]);
                 canvas.DrawMap(ctx, Components, baseStrokeColor, canvasRef.Width, canvasRef.Height);
-                Components.Clear();
+
             }
         }
+
     }
 
     //Takes the map objects Dictonary<string,object> and converts the objects to ComponentV
     private void MapDictionaryOfComps(Map map)
     {
-        Components.Clear();
+
         foreach (var item in map.components)
         {
             var geodata = item.Value.ToString();
