@@ -1,11 +1,12 @@
-﻿namespace TheMall.Data
+﻿using TheMall.Data.Modles;
+
+namespace TheMall.Data
 {
     public class AppState
     {
-        public FirmUser? FuName { get; set; }
+        public SessionCredentials Credentials { get; set; }
 
-        public FirmUser? FuRole { get; set; }
+        public string UserName { get; set; }    
 
-        public FirmUser? FuFId { get; set; }
     }
 }

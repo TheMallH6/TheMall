@@ -72,8 +72,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        UName = AppState.FuName.UserName;
-        URole = AppState.FuRole.Role;
+        UName = AppState.UserName;
+        URole = AppState.Credentials.Role;
 
         if (URole == "Redaktør")
         {

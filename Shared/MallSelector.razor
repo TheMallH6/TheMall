@@ -2,6 +2,7 @@
 @using TheMall.Data.Modles
 
 @inject ISessionManager sManager;
+@inject AppState state;
 
 <select @bind="SelectedMallId" class="mall-selector">
     @foreach (var mall in malls)
@@ -27,6 +28,6 @@
     protected override async Task OnInitializedAsync()
     {
         RestCaller caller = new RestCaller();
-        malls = await caller.GetMalls(10203040);
+        malls = await caller.GetMalls(state.Credentials.FirmID);
     }
 }

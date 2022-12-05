@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text;
 using System.Xml;
+using TheMall.Utils;
 
 namespace TheMall.Data
 {
@@ -61,7 +62,7 @@ namespace TheMall.Data
         }
 
         /// <summary>
-        /// Get malls from backend database
+        /// Get sessionCredentials from backend database
         /// </summary>
         /// <param name="cvrnr"></param>
         /// <returns></returns>
@@ -73,6 +74,19 @@ namespace TheMall.Data
             string responseString = await response.Content.ReadAsStringAsync();
             List<Mall> malls = JsonSerializer.Deserialize<List<Mall>>(responseString);
             return malls;
+        }
+
+
+        public async Task<SessionCredentials> GetLoginCredentiels(string userName, string Password)
+        {
+            string uri = $"{baseUri}Validate/Login?uname={userName}&password={Password.ToSha256()}";
+            var result = await client.PostAsJsonAsync<SessionCredentials>(uri, null);
+            var res = result.Content.ReadAsStringAsync().Result;
+            SessionCredentials sessionCredentials = JsonSerializer.Deserialize<SessionCredentials>(res);
+
+            return sessionCredentials;
+
+
         }
     }
 }
