@@ -20,13 +20,13 @@
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public int? GetKey(string key)
+        public int GetKey(string key)
         {
             string tempStr = GetStringValue(key);
             int tempInt;
             if (Int32.TryParse(tempStr, out tempInt))
                 return tempInt;
-            return null;
+            return 0;
         }
         /// <summary>
         /// Sets the key value to Dictonary
