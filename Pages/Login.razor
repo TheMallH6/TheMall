@@ -21,7 +21,7 @@
     <br />
     <div class="form-group">
         <label for="pass">Kodeord: </label>
-        <InputText Id="pass" Class="form-control formLog" @bind-Value="@Model.Password"></InputText>
+        <InputText Id="pass" type="password" Class="form-control formLog" @bind-Value="@Model.Password"></InputText>
         <ValidationMessage For="@(() => Model.Password)" />
     </div>
     <br />
@@ -42,16 +42,6 @@
 
         string? upassword = Model.Password;
 
-        /* // Generate a 128-bit salt using a sequence of cryptographically strong random bytes.
-           byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
-
-          // Derive a 256-bit subkey - using HMACSHA256 with 100,000 iterations)
-          string hashedPassWord = Convert.ToBase64String(KeyDerivation.Pbkdf2(password: upassword, salt: salt,
-          prf: KeyDerivationPrf.HMACSHA256,
-          iterationCount: 100000,
-          numBytesRequested: 256 / 8));
-        */
-
         var sha256 = SHA256.Create();
         
         string hashedPassWord = BitConverter.ToString(sha256.ComputeHash(Encoding.UTF8.GetBytes(upassword))).Replace("-", "");
@@ -60,7 +50,7 @@
         await OnInitializedAsync();
 
 
-     if (Model.Role != null && Model.SessionKey != null && Model.FirmID < 0)
+   if (Model.Role != null && Model.SessionKey != null && Model.FirmID < 0)
         {
 
             // Setting objects before navigating
