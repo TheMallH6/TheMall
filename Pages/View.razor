@@ -1,8 +1,7 @@
 ﻿@page "/view"
 
-@using System.Net.Http.Json;
-@using System.Net.Http.Headers;
-@using System.Text.Json;
+
+@using Newtonsoft.Json
 @using TheMall.Data.CanvasData
 @using System.Drawing
 @using Blazor.Extensions
@@ -12,11 +11,12 @@
 @using BlazorColorPicker
 @using System.Collections.Generic;
 @using TheMall.Data;
+@using TheMall.Data.Modles;
 
 @inject AppState AppState
-@inject HttpClient client
+@inject ISessionManager sManager
 
-<h3>Hej @UName</h3>
+<h3>Hej @AppState.UserName</h3>
 
 <div style="display: inline-block;">
     <div class="canvasStyle" tabindex="0" style="float: left;">
@@ -25,124 +25,126 @@
 
     <div style="float: right; width: 300px; margin-left: 30px;">
         <h3>Vælg og vis kort.</h3>
-         <div>
-            <label for="mall">Vælg Storcenter: </label>
-@*            <select class="form-control selectpicker" @bind="Model2.Location">
-                <option id="mall">----</option>
-                @foreach (var item in mallObjInList)
+        <br />
+        <div>
+
+            <button class="drawBTN drawBTNsizeL" @onclick="BeginDrawMap" style="align-content:center">Vis dit kort</button>
+        </div>
+        <div>
+            <label for="mall">Vælg Etage: </label>
+        </div>
+        <div>
+            <select @bind="mapLayer" class="form-control selectpicker">
+                @if (maps != null)
                 {
-                    <option value="@item.FirmID">@item.Location</option>
+                    @foreach (var map in maps)
+                    {
+                        @if (map == null)
+                        {
+                            continue;
+                        }
+                        <option value="@map.layer">@map.layer</option>
+                    }
                 }
             </select>
         </div>
-        <br />
-        <div>
-            <label for="map">Vælg Kort: </label>
-            <select class="form-control selectpicker" @bind="MapModel.Layer">
-                <option id="map">----</option>
-                @foreach (var item in mapObjInList)
-                {
-                    <option value="@item.MallID">@item.Layer</option>
-                }
-            </select>
+        @*  <div>
+        <label for="map">Vælg Kort: </label>
+        <select class="form-control selectpicker" @bind="Model.Layer">
+        <option id="map">----</option>
+        @foreach (var item in mapObjInList)
+        {
+        <option value="@item.MallID">@item.Layer</option>
+        }
+        </select>
         </div>
         <br />
         <div>
-            <button class="drawBTN drawBTNsizeL" @onclick="ShowMap">Vis</button>*@
-        </div>
-        <br />
-        <hr />
-        <h3 hidden="@isHidden">Slet kort.</h3>
-        <div>
-            <button hidden="@isHidden" class="drawBTN drawBTNsizeS" @onclick="DeleteMap">Slet</button>
-        </div>
+        <button class="drawBTN drawBTNsizeL" @onclick="ShowMap">Vis</button>
+        </div>*@
     </div>
 </div>
 
 @code {
     private BECanvasComponent? canvasRef;
     bool isHidden = true;
+    private int mapLayer;
+    private List<Map> maps { get; set; } = new List<Map>();
+    private RestCaller restCaller { get; set; } = new RestCaller();
+    private List<ComponentV> Components { get; set; } = new List<ComponentV>();
+    private Canvas2DContext ctx;
+    string baseStrokeColor = "#777";
 
-
-    //private Mall Model2 = new Mall();
-    //private Map Model = new Map();
-
-
-    //List<Mall> mallObjInList = new List<Mall>();
-    //List<Map> mapObjInList = new List<Map>();
-
-    public string UName { get; set; }
-    public string URole { get; set; }
-    public string FId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        UName = AppState.UserName;
-        URole = AppState.Credentials.Role;
+        sManager.OnChange += UpdateMapList;
 
-
-        if (URole == "Redaktør")
+        if (AppState.Credentials.Role == "Redaktør")
         {
-        isHidden = false;
+            isHidden = false;
         }
         else
         {
-        isHidden = true;
-    }*/
-        await GetListOfMall(); 
-    }
 
-    protected async Task GetListOfMall()
-    {
+            isHidden = true;
+        }
 
-
-        // convert response data to JsonElement which can handle any JSON data
         try
         {
-
-            var result = await client.GetStringAsync($"https://localhost:7032/Mall/GetMalls");
-
-            var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-            var jsonData = JsonSerializer.Deserialize<List<Mall>>(result, options);
-           
-
-            foreach (Mall item in jsonData)
-            {
-                Mall a = new Mall();
-                a.FirmID = item.FirmID;
-                a.Location = item.Location;
-
-                mallObjInList.Add(a);
-            }
-
-
-            await GetListOfMap();
-
+            UpdateMapList();
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            string eee = e.Message.ToString();
-            
+
+
+        }
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        this.ctx = await canvasRef.CreateCanvas2DAsync();
+    }
+
+    private async void UpdateMapList()
+    {
+        maps = await restCaller.GetMap(sManager.GetKey("MallID"));
+        StateHasChanged();
+    }
+
+    //Draw map using canvas.drawmap
+    private void BeginDrawMap()
+    {
+        Canvas canvas = new Canvas();
+        Components.Clear();
+        for (int i = 0; i < maps.Count; i++)
+        {
+            if (mapLayer == maps[i].layer)
+            {
+                MapDictionaryOfComps(maps[i]);
+                canvas.DrawMap(ctx, Components, baseStrokeColor, canvasRef.Width, canvasRef.Height);
+            }
         }
     }
 
-    protected async Task GetListOfMap()
+    //Takes the map objects Dictonary<string,object> and converts the objects to ComponentV
+    private void MapDictionaryOfComps(Map map)
     {
-       //  mapObjInList = API call... to get all maps based on MallID
-    }
-    
+        foreach (var item in map.components)
+        {
+            var geodata = item.Value.ToString();
+            var options = new JsonSerializerSettings()
+                {
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    NullValueHandling = NullValueHandling.Ignore,
+                };
+            var components = JsonConvert.DeserializeObject<IEnumerable<ComponentV>>(geodata, options);
+            foreach (var item2 in components)
+            {
+                Components.Add(new ComponentV(item2.Description, item2.ZIndex, item2.Geodata));
+            }
+        }
 
-    protected async Task ShowMap()
-    {
-        //var result = await client.GetFromJsonAsync($"https://localhost:7032/Map/GetByLocation?MallID={Model.Layer}", null);
-
-    }
-
-    protected async Task DeleteMap()
-    {
-        //var result = await client.PostAsJsonAsync<object>($"https://localhost:7032/Map/Delete?MallID={Model.Layer}", null);
     }
 }

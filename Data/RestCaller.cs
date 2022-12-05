@@ -21,9 +21,14 @@ namespace TheMall.Data
             client.DefaultRequestHeaders.Add("ApiKey", apikey);
         }
 
-        public async Task<List<Map>> GetMap(int? mallid)
+        /// <summary>
+        /// Get a list of maps from the database by mallid
+        /// </summary>
+        /// <param name="mallid"></param>
+        /// <returns></returns>
+        public async Task<List<Map>> GetMap(int mallid)
         {
-            if (mallid == null)
+            if (mallid == 0)
                 return null;
             Uri uri = new Uri(baseUri + "Map/Get?mallid=" + mallid);
             HttpRequestMessage request = CreateaRequestMessage(uri, HttpMethod.Get);
@@ -62,7 +67,7 @@ namespace TheMall.Data
         }
 
         /// <summary>
-        /// Get sessionCredentials from backend database
+        /// Get all the malls from the database by cvrnr
         /// </summary>
         /// <param name="cvrnr"></param>
         /// <returns></returns>
@@ -76,10 +81,15 @@ namespace TheMall.Data
             return malls;
         }
 
-
+        /// <summary>
+        /// Get sessionCredentials from backend database by validating username and password
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="Password"></param>
+        /// <returns></returns>
         public async Task<SessionCredentials> GetLoginCredentiels(string userName, string Password)
         {
-            string uri = $"{baseUri}Validate/Login?uname={userName}&password={Password.ToSha256()}";
+            Uri uri = new Uri($"{baseUri}Validate/Login?uname={userName}&password={Password.ToSha256()}");
             var result = await client.PostAsJsonAsync<SessionCredentials>(uri, null);
             var res = result.Content.ReadAsStringAsync().Result;
             SessionCredentials sessionCredentials = JsonSerializer.Deserialize<SessionCredentials>(res);

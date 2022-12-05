@@ -13,11 +13,12 @@
 @using Newtonsoft.Json;
 @using Newtonsoft.Json.Linq;
 @using TheMall.Data.Modles;
+@using System.Diagnostics;
 
 @inject AppState AppState
 @inject ISessionManager sManager;
 
-<h3>Map over:  @UName</h3>
+<h3>Hej: @AppState.UserName</h3>
 
 <div style="display: inline-block;">
     <div id="drawCanvas" class="canvasStyle" tabindex="0" @onmousedown="MouseDown" @onmouseup="MouseUp" style="float: left;">
@@ -26,17 +27,6 @@
 
     <div style="float: right; width: 300px; margin-left: 30px;">
         <h3>Skitse plantegning.</h3>
-        <div>
-            <button class="drawBTN drawBTNsizeL" @onclick="DrawMap" style="align-content:center">Tegn dit kort</button>
-        </div>
-        <div>
-            <select @bind="mapLayer" class="mall-selector">
-                @foreach (var map in maps)
-                {
-                    <option value="@map.layer">@map.layer</option>
-                }
-            </select>
-        </div>
         <div>
             <button class="drawBTN drawBTNsizeL" @onclick="() => ToolChanger(DrawTool.polygon)" style="align-content:center">Tegn en figur</button>
         </div>
@@ -49,6 +39,9 @@
         <div>
             <button class="drawBTN drawBTNsizeS" @onclick="UndoLast" style="align-content:center">Fortryd</button>
         </div>
+        <div>
+            <button class="drawBTN drawBTNsizeS" @onclick="UndoAll" style="align-content:center">Slet alt</button>
+        </div>
         <input id="fillBox" type="checkbox" @bind-value="@fill" />
         <label for="fillBox"> Anvend farve</label>
         <br />
@@ -60,13 +53,7 @@
         <ColorPicker Title="Stop and go ColorPicker" IsOpened="isOpened" Closed="OnColorPickerClosed" MyColor="@baseColorPicker"></ColorPicker>
         <br />
         <hr />
-        <h3>Insæt lokation.</h3>
-        @*        <div>
-        <button class="drawBTN drawBTNsizeL">Upload ikon</button>
-        </div>*@
-        @*        <div>
-        <button class="drawBTN drawBTNsizeL" @onclick="">Skriv Tekst</button>
-        </div>*@
+        <h3>Indsæt lokation.</h3>
         <EditForm Model="layer">
             <div class="form-group">
                 <label for="name">
@@ -87,7 +74,6 @@
     private List<ComponentV> Components { get; set; } = new List<ComponentV>();
     private List<int> Xinput { get; set; } = new List<int>();
     private List<int> Yinput { get; set; } = new List<int>();
-    private List<Map> maps { get; set; } = new List<Map>();
     private Canvas2DContext ctx;
     private RestCaller restCaller { get; set; } = new RestCaller();
     private DrawTool selectedTool = DrawTool.polygon;
@@ -98,6 +84,7 @@
     private bool fill;
     private int layer;
     private int mapLayer;
+
 
     public string UName { get; set; }
     public string URole { get; set; }
@@ -116,15 +103,17 @@
     }
     } */
 
+S
     protected override void OnInitialized()
     {
-        sManager.OnChange += UpdateMapList;
-    }
-
-    private async void UpdateMapList()
-    {
-        maps = await restCaller.GetMap(sManager.GetKey("MallID"));
-        StateHasChanged();
+        if (AppState.Credentials.Role == "Redaktør")
+        {
+            isHidden = false;
+        }
+        else
+        {
+            isHidden = true;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -132,33 +121,39 @@
         this.ctx = await canvasRef.CreateCanvas2DAsync();
     }
 
-    protected void ToolChanger(DrawTool tool)
+    //Triggers on buttonclick to change the current tool
+    protected async void ToolChanger(DrawTool tool)
     {
         clicks = 0;
         SaveGeoDataOnTooChange();
         selectedTool = tool;
+        await ctx.ClosePathAsync();
 
     }
 
+    //Triggers on mouseDown find the locatio of the mouse on press down
     private async void MouseDown(MouseEventArgs args)
     {
         clicks++;
         pointOnEnter = new Point((int)args.OffsetX, (int)args.OffsetY);
     }
 
+    //Triggers on mouseup and find the location of mouse up and call drawoncanvas
     private async void MouseUp(MouseEventArgs args)
     {
         pointOnExit = new Point((int)args.OffsetX, (int)args.OffsetY);
 
-        DrawingObjectByTool();
+        DrawOnCanvasUsingTool(baseColorPicker);
     }
 
-    private async void DrawingObjectByTool()
+    //Method is trigged on mouse up and it looks what tool we are using.
+    //Then we draw on the canvas and save the x and y inpu from mouse to arrays
+    private async void DrawOnCanvasUsingTool(string color)
     {
         await ctx.BeginBatchAsync();
 
         if (fill)
-            await ctx.SetFillStyleAsync(baseColorPicker);
+            await ctx.SetFillStyleAsync(color);
 
         switch (selectedTool)
         {
@@ -166,6 +161,7 @@
 
                 if (clicks == 1)
                 {
+                    await ctx.BeginPathAsync();
                     await ctx.MoveToAsync(pointOnEnter.X, pointOnEnter.Y);
                     Xinput.Add(pointOnEnter.X);
                     Yinput.Add(pointOnEnter.Y);
@@ -187,8 +183,6 @@
                     }
                 }
                 await ctx.StrokeAsync();
-
-
                 break;
 
             case DrawTool.line:
@@ -224,16 +218,16 @@
                 InsertCordsSquar(rect);
                 if (fill)
                 {
-
+                    
+                    await ctx.SetStrokeStyleAsync(baseColorPicker);
                     await ctx.StrokeRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
                     await ctx.FillRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
-                    await ctx.SetStrokeStyleAsync(baseColorPicker);
 
                 }
                 else
                 {
-                    await ctx.StrokeRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
                     await ctx.SetStrokeStyleAsync(baseStrokeColor);
+                    await ctx.StrokeRectAsync(rect.X, rect.Y, rect.Width, rect.Height);
                 }
 
                 break;
@@ -241,73 +235,17 @@
         await ctx.EndBatchAsync();
     }
 
-    private async void DrawMap()
-    {
-        Components.Clear();
-        bool firstDraw = true;
-        for (int i = 0; i < maps.Count; i++)
-        {
-            if (mapLayer == maps[i].layer)
-            {
-                MapDictionaryOfComps(maps[i]);
-                for (int j = 0; j < Components.Count; j++)
-                {
-                    await ctx.BeginBatchAsync();
-                    for (int x = 0; x < Components[j].Geodata.XInput.Length; x++)
-                    {
-                        if (firstDraw == true)
-                        {
-                            await ctx.MoveToAsync(Components[j].Geodata.XInput[x], Components[j].Geodata.YInput[x]);
-                            firstDraw = false;
-                        }
-                        else
-                            await ctx.LineToAsync(Components[j].Geodata.XInput[x], Components[j].Geodata.YInput[x]);
-                    }
-                    await ctx.EndBatchAsync();
-                    firstDraw = true;
-                }
-            }
-            await ctx.StrokeAsync();
-            await ctx.SetStrokeStyleAsync(baseStrokeColor);
-        }
-
-    }
-
-    private void MapDictionaryOfComps(Map map)
-    {
-        Components.Clear();
-        foreach (var item in map.components)
-        {
-            var geodata = item.Value.ToString();
-            var options = new JsonSerializerSettings()
-                {
-                    DefaultValueHandling = DefaultValueHandling.Ignore,
-                    NullValueHandling = NullValueHandling.Ignore,
-                };
-            var components = JsonConvert.DeserializeObject<IEnumerable<ComponentV>>(geodata, options);
-            foreach (var item2 in components)
-            {
-                Components.Add(new ComponentV(item2.Description, item2.ZIndex, item2.Geodata));
-            }
-        }
-    }
-
+    //When drawing is done save the object to Components property
     private void SaveGeoDataOnTooChange()
     {
-
-
-        if (Xinput.Count <= 0 || Yinput.Count <= 0)
-        {
-
-        }
-        else
+        if (Xinput.Count > 0 || Yinput.Count > 0)
         {
             Components.Add(new ComponentV("", 0, new GeodataV(GetTypeOfComponentBYTool(), Xinput.ToArray(), Yinput.ToArray(), 4321)));
             ClearXandYArrays();
         }
-
     }
 
+    //Creas squar and save it to Components Property
     private void InsertCordsSquar(RectangleF rect)
     {
         Xinput.Add((int)rect.X);
@@ -323,6 +261,7 @@
         SaveGeoDataOnTooChange();
     }
 
+    //Get the type of tool as string.
     private string GetTypeOfComponentBYTool()
     {
         string type = "";
@@ -343,34 +282,58 @@
         return type;
     }
 
+    //Clear the x and y arrays
     private void ClearXandYArrays()
     {
         Xinput.Clear();
         Yinput.Clear();
     }
 
+    //On color picker open
     private void OnColorPickerOpen()
     {
         isOpened = true;
     }
 
+    //On color picker close, we change the base color value to new value
     private void OnColorPickerClosed(string value)
     {
         baseColorPicker = value;
         isOpened = false;
     }
 
+    //Undo the last change and draw the map agien
     private async void UndoLast()
     {
-        ctx.ClearRectAsync(0, 0, (double)canvasRef.Width, (double)canvasRef.Height);
-        //allObjInList.RemoveAt(allObjInList.Count - 1);
+        Canvas canvas = new Canvas();
+        if (!Components.Any())
+        {
+            UndoAll();
+        }
+        else
+        {
+            Components.Remove(Components.Last());
+            canvas.DrawMap(ctx, Components, baseStrokeColor, canvasRef.Width, canvasRef.Height);
+        }
+
+
     }
+    
+    //Clear the full canvas
+    private async void UndoAll()
+    {
+        await ctx.ClearRectAsync(0, 0, (double)canvasRef.Width, (double)canvasRef.Height);
+        Components.Clear();
+    }
+
+    //Create MapV object
     private MapV CreateMap()
     {
         MapV map = new MapV(sManager.GetKey("MallID"), layer, Components);
         return map;
     }
 
+    //Save is called by button click to save the map
     protected async void Save()
     {
         await restCaller.InsertMap(CreateMap());

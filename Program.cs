@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using TheMall;
-using TheMall.Data;
+using TheMall.Data.Modles;
 using TheMall.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
