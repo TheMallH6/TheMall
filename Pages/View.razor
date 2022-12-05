@@ -1,5 +1,6 @@
 ﻿@page "/view"
 
+@using Newtonsoft.Json
 @using TheMall.Data.CanvasData
 @using System.Drawing
 @using Blazor.Extensions
@@ -12,68 +13,115 @@
 @using TheMall.Data.Modles;
 
 @inject AppState AppState
+@inject ISessionManager sManager
 
 <h3>Hej @AppState.UserName</h3>
 
 <div style="display: inline-block;">
-    <div id="drawCanvas" class="canvasStyle" tabindex="0" style="float: left;">
+    <div class="canvasStyle" tabindex="0" style="float: left;">
         <BECanvas Width="600" Height="500" @ref="canvasRef" />
     </div>
 
     <div style="float: right; width: 300px; margin-left: 30px;">
         <h3>Vælg og vis kort.</h3>
-         <div>
-            <label for="mall">Vælg Storcenter: </label>
-        </div>
         <br />
-      @*  <div>
-            <label for="map">Vælg Kort: </label>
-            <select class="form-control selectpicker" @bind="Model.Layer">
-                <option id="map">----</option>
-                @foreach (var item in mapObjInList)
+        <div>
+            <button class="drawBTN drawBTNsizeL" @onclick="DrawMap" style="align-content:center">Vis dit kort</button>
+        </div>
+        <div>
+            <label for="mall">Vælg Etage: </label>
+        </div>
+        <div>
+            <select @bind="mapLayer" class="form-control selectpicker">
+                @foreach (var map in maps)
                 {
-                    <option value="@item.MallID">@item.Layer</option>
+                    <option value="@map.layer">@map.layer</option>
                 }
             </select>
         </div>
-        <br />
-        <div>
-            <button class="drawBTN drawBTNsizeL" @onclick="ShowMap">Vis</button>
-        </div>*@
-        <br />
-        <hr />
-        <h3 hidden="@isHidden">Slet kort.</h3>
-        <div>
-            <button hidden="@isHidden" class="drawBTN drawBTNsizeS" @onclick="DeleteMap">Slet</button>
+        @*  <div>
+        <label for="map">Vælg Kort: </label>
+        <select class="form-control selectpicker" @bind="Model.Layer">
+        <option id="map">----</option>
+        @foreach (var item in mapObjInList)
+        {
+        <option value="@item.MallID">@item.Layer</option>
+        }
+        </select>
         </div>
+        <br />
+        <div>
+        <button class="drawBTN drawBTNsizeL" @onclick="ShowMap">Vis</button>
+        </div>*@
     </div>
 </div>
 
 @code {
     private BECanvasComponent? canvasRef;
     bool isHidden = true;
+    private int mapLayer;
+    private List<Map> maps { get; set; } = new List<Map>();
+    private RestCaller restCaller { get; set; } = new RestCaller();
+    private List<ComponentV> Components { get; set; } = new List<ComponentV>();
+    private Canvas2DContext ctx;
+    string baseStrokeColor = "#777";
 
     protected override async Task OnInitializedAsync()
     {
+        sManager.OnChange += UpdateMapList;
         if (AppState.Credentials.Role == "Redaktør")
         {
-        isHidden = false;
+            isHidden = false;
         }
         else
         {
-          isHidden = true;
+            isHidden = true;
         }
     }
 
-    protected async Task ShowMap()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // call API...
-        //var result = await client.GetFromJsonAsync($"https://localhost:7032/Map/GetByLocation?MallID={Model.Layer}", null);
+        this.ctx = await canvasRef.CreateCanvas2DAsync();
     }
 
-    protected async Task DeleteMap()
+    private async void UpdateMapList()
     {
-        // call API...
-        //var result = await client.PostAsJsonAsync<object>($"https://localhost:7032/Map/Delete?MallID={Model.Layer}", null);
+        maps = await restCaller.GetMap(sManager.GetKey("MallID"));
+        StateHasChanged();
+    }
+
+    //Draw map using canvas.drawmap
+    private void DrawMap()
+    {
+        Canvas canvas = new Canvas();
+        for (int i = 0; i < maps.Count; i++)
+        {
+            if (mapLayer == maps[i].layer)
+            {
+                MapDictionaryOfComps(maps[i]);
+                canvas.DrawMap(ctx, Components, baseStrokeColor, canvasRef.Width, canvasRef.Height);
+                Components.Clear();
+            }
+        }
+    }
+
+    //Takes the map objects Dictonary<string,object> and converts the objects to ComponentV
+    private void MapDictionaryOfComps(Map map)
+    {
+        Components.Clear();
+        foreach (var item in map.components)
+        {
+            var geodata = item.Value.ToString();
+            var options = new JsonSerializerSettings()
+                {
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    NullValueHandling = NullValueHandling.Ignore,
+                };
+            var components = JsonConvert.DeserializeObject<IEnumerable<ComponentV>>(geodata, options);
+            foreach (var item2 in components)
+            {
+                Components.Add(new ComponentV(item2.Description, item2.ZIndex, item2.Geodata));
+            }
+        }
     }
 }
