@@ -2,7 +2,6 @@
 @using TheMall.Data.Modles
 
 @inject ISessionManager sManager;
-@inject AppState state;
 
 <select @bind="SelectedMallId" class="form-control selectpicker mall-selector">
     <option id="map">Vælg StorCenter</option>
@@ -16,6 +15,7 @@
     string mallName = "";
     int mallId = -1;
     private int selectedMallId;
+    //On the set of SelectedMallId set it in the session manager
     private int SelectedMallId{
         get{ return selectedMallId; }
         set{ 
@@ -26,16 +26,9 @@
 
     List<Mall> malls = new List<Mall>();
 
+    //Get mall location wjere its equals to current selected mall from drop down
     private string GetMall()
     {
         return malls.Find(x => x.id.Equals(selectedMallId))?.location;
-    }
-
-
-    protected override async Task OnInitializedAsync()
-    {
-        RestCaller caller = new RestCaller();
-   //     malls = await caller.GetMalls(state.Credentials.FirmID);
-   
     }
 }

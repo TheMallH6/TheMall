@@ -37,6 +37,9 @@
 
     private FirmUser Model = new FirmUser();
 
+    //Is called on button click when loggin in.
+    //Gets a session from the api if the login is corrent
+    //Then rediret if we get a session back.
     protected async Task HandleValidLogin()
     {
         RestCaller restCaller = new RestCaller();
@@ -60,6 +63,7 @@
         }
     }
 
+    //Update status message if login was invalid
     protected void HandleInvalidLogin()
     {
         StatusMessage = "Noget gik galt...";

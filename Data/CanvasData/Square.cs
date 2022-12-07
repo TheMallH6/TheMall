@@ -2,6 +2,7 @@
 
 namespace TheMall.Data.CanvasData
 {
+    //Used to store the draw data when creating a square
     public class Square
     {
         private Point[] points = new Point[4];

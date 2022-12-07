@@ -2,6 +2,11 @@
 {
     public class Mall
     {
+        /// <summary>
+        /// This object is what we are getting when we are asking for malls from the api
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="location"></param>
         public Mall(int? id, string location)
         {
             this.id = id;

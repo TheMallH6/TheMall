@@ -4,6 +4,13 @@ namespace TheMall.Data.Modles
 {
     public class GeodataV
     {
+        /// <summary>
+        /// Used in ComponentV to store the the spatial data we use to draw on the map
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="xInput"></param>
+        /// <param name="yInput"></param>
+        /// <param name="srid"></param>
         public GeodataV(string type, int[] xInput, int[] yInput, int srid)
         {
             Type = type;

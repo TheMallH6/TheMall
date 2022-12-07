@@ -93,6 +93,8 @@
         this.ctx = await canvasRef.CreateCanvas2DAsync();
     }
 
+    //If the drop down with malls changes get map data from api
+    //Then update the dropdown with showing what map to show by layer
     private async void UpdateMapList()
     {
         maps = await restCaller.GetMap(sManager.GetKey("MallID"));

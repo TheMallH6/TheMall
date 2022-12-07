@@ -2,6 +2,12 @@
 {
     public class ComponentV
     {
+        /// <summary>
+        /// Is used in MapV to store all the diffrent components of the map
+        /// </summary>
+        /// <param name="description"></param>
+        /// <param name="zIndex"></param>
+        /// <param name="geodata"></param>
         public ComponentV(string description, int zIndex, GeodataV geodata)
         {
             Description = description;
