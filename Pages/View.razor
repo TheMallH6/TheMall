@@ -35,9 +35,9 @@
         </div>
         <div>
             <select @bind="mapLayer" class="form-control selectpicker">
-                @if (maps != null)
+                @if (Maps != null)
                 {
-                    @foreach (var map in maps)
+                    @foreach (var map in Maps)
                     {
                         @if (map == null)
                         {
@@ -55,8 +55,8 @@
     private BECanvasComponent? canvasRef;
     bool isHidden = true;
     private int mapLayer;
-    private List<Map> maps { get; set; } = new List<Map>();
-    private RestCaller restCaller { get; set; } = new RestCaller();
+    private List<Map> Maps { get; set; } = new List<Map>();
+    private RestCaller RestCaller { get; set; } = new RestCaller();
     private List<ComponentV> Components { get; set; } = new List<ComponentV>();
     private Canvas2DContext ctx;
     string baseStrokeColor = "#777";
@@ -97,7 +97,7 @@
     //Then update the dropdown with showing what map to show by layer
     private async void UpdateMapList()
     {
-        maps = await restCaller.GetMap(sManager.GetKey("MallID"));
+        Maps = await RestCaller.GetMap(sManager.GetKey("MallID"));
         StateHasChanged();
     }
 
@@ -106,11 +106,11 @@
     {
         Canvas canvas = new Canvas();
         Components.Clear();
-        for (int i = 0; i < maps.Count; i++)
+        for (int i = 0; i < Maps.Count; i++)
         {
-            if (mapLayer == maps[i].layer)
+            if (mapLayer == Maps[i].layer)
             {
-                MapDictionaryOfComps(maps[i]);
+                MapDictionaryOfComps(Maps[i]);
                 canvas.DrawMap(ctx, Components, baseStrokeColor, canvasRef.Width, canvasRef.Height);
             }
         }

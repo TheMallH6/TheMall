@@ -27,13 +27,13 @@
     </div>
     <br />
     <button type="submit">Login</button>
-    <div class="customTextColor">@StatusMessage</div>
+    <div class="customTextColor">@statusMessage</div>
 
 </EditForm>
 
 @code
 {
-    private string StatusMessage = " ";
+    private string statusMessage = " ";
 
     private FirmUser Model = new FirmUser();
 
@@ -44,7 +44,7 @@
     {
         RestCaller restCaller = new RestCaller();
 
-        StatusMessage = "Vi tjekker lige dit login...";
+        statusMessage = "Vi tjekker lige dit login...";
 
         var sessionCredentials =  await restCaller.GetLoginCredentiels(Model.UserName, Model.Password);
 
@@ -59,14 +59,14 @@
         }
         else
         {
-            StatusMessage = "Ingen Adgang";
+            statusMessage = "Ingen Adgang";
         }
     }
 
     //Update status message if login was invalid
     protected void HandleInvalidLogin()
     {
-        StatusMessage = "Noget gik galt...";
+        statusMessage = "Noget gik galt...";
     }
 }
 
