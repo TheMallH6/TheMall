@@ -1,6 +1,7 @@
 ﻿@using TheMall.Data
 @using TheMall.Data.Modles
 
+@inject AppState state
 @inject ISessionManager sManager;
 
 <select @bind="SelectedMallId" class="form-control selectpicker mall-selector">
@@ -30,5 +31,11 @@
     private string GetMall()
     {
         return malls.Find(x => x.id.Equals(selectedMallId))?.location;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        RestCaller caller = new RestCaller();
+        malls = await caller.GetMalls(state.Credentials.FirmID);
     }
 }
