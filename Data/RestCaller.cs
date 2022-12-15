@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using System.Text;
 using System.Xml;
 using TheMall.Utils;
+using System.Security.Cryptography;
 
 namespace TheMall.Data
 {
@@ -95,7 +96,53 @@ namespace TheMall.Data
             SessionCredentials sessionCredentials = JsonSerializer.Deserialize<SessionCredentials>(res);
 
             return sessionCredentials;
+        }
 
+        // Sending Firm objects to API for save in database.
+        public async Task<String> InsertFirm(string cvr, string name)
+        {
+            // Using Uri (Universal Resource Identifier) for calling API and sending objects to API
+            Uri uri = new Uri($"{baseUri}Firm/Create?cvr={int.Parse(cvr)}&name={name}");
+
+            // Using HttpResponseMessage for returning a message from API
+            HttpResponseMessage response = await client.PostAsJsonAsync<FirmData>(uri, null);
+
+            // Convert JSON value to string
+            string responseString = response.Content.ReadAsStringAsync().Result;
+            var json = JsonSerializer.Deserialize<string>(responseString);
+            return json;
+
+        }
+
+        // Sending Mall objects to API for save in database.
+        public async Task<String> InsertMall(string mallid, string location)
+        {
+            // Using Uri (Universal Resource Identifier) for calling API and sending objects to API
+            Uri uri = new Uri($"{baseUri}Mall/Create?firmId={int.Parse(mallid)}&location={location}");
+
+            // Using HttpResponseMessage for returning a message from API
+            HttpResponseMessage response = await client.PostAsJsonAsync<FirmData>(uri, null);
+
+            // Convert JSON value to string
+            string responseString = response.Content.ReadAsStringAsync().Result;
+            var json = JsonSerializer.Deserialize<string>(responseString);
+            return json;
+
+        }
+
+        // Sending User objects to API for save in database.
+        public async Task<String> InsertUser(string username, string password, string role, string firmid)
+        {
+            // Using Uri (Universal Resource Identifier) for calling API and sending objects to API
+            Uri uri = new Uri($"{baseUri}Validate/Create?uname={username}&password={password}&role={role}&firmid={int.Parse(firmid)}");
+
+            // Using HttpResponseMessage for returning a message from API
+            HttpResponseMessage response = await client.PostAsJsonAsync<FirmData>(uri, null);
+
+            // Convert JSON value to string
+            string responseString = response.Content.ReadAsStringAsync().Result;
+            var json = JsonSerializer.Deserialize<string>(responseString);
+            return json;
 
         }
     }

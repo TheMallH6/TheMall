@@ -97,6 +97,9 @@ label {
     width: 50% !important;
 }
 
+.formAdm {
+    width: 80% !important;
+}
 .formLay {
     width: 24% !important;
     padding: 0 !important;

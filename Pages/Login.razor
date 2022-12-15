@@ -50,12 +50,25 @@
 
         if (sessionCredentials.Role != null && sessionCredentials.SessionKey != null && sessionCredentials.FirmID > 0)
         {
+            if (sessionCredentials.Role == "Administrator")
+            {
+                // Setting objects before navigating
+                AppState.Credentials = sessionCredentials;
+                AppState.UserName = Model.UserName;
 
-            // Setting objects before navigating
-            AppState.Credentials = sessionCredentials;
-            AppState.UserName = Model.UserName;
-            // Navigate to another page
-            NavManager.NavigateTo("/create");
+                // Navigate to another page
+                NavManager.NavigateTo("/administrator");
+            }
+            else
+            {
+
+                // Setting objects before navigating
+                AppState.Credentials = sessionCredentials;
+                AppState.UserName = Model.UserName;
+
+                // Navigate to another page
+                NavManager.NavigateTo("/create");
+            }
         }
         else
         {

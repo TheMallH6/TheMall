@@ -1,0 +1,177 @@
+﻿@page "/administrator"
+
+@using System.Text;
+@using System.Text.Json;
+@using TheMall.Data
+@using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+@using System.Security.Cryptography;
+@using TheMall.Data.Modles;
+
+@inject AppState AppState
+@inject NavigationManager NavManager
+@inject HttpClient client
+
+<div style="display: inline-block;">
+    <div style="float: left; width: 400px;">
+        <EditForm Model="@Model" OnValidSubmit="@HandleValidFirm" OnInvalidSubmit="@HandleInvalid">
+
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <label for="cvrnr">Firma cvrnr.: </label>
+                <InputText Id="cvrnr" Class="form-control formAdm" @bind-Value="@Model.Cvr"></InputText>
+                <ValidationMessage For="@(() => Model.Cvr)" />
+            </div>
+            <br />
+            <div class="form-group">
+                <label for="firmname">Firmanavn: </label>
+                <InputText Id="firmname" Class="form-control formAdm" @bind-Value="@Model.Name"></InputText>
+                <ValidationMessage For="@(() => Model.Name)" />
+            </div>
+            <br />
+            <button type="submit">Opret firma</button>
+            <div class="customTextColor">@statusMessageFirm</div>
+        </EditForm>
+        <br />
+        <br />
+        <EditForm Model="@Model" OnValidSubmit="@HandleValidMall" OnInvalidSubmit="@HandleInvalid">
+
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <label for="mallid">Firma cvrnr.: </label>
+                <InputText Id="mallid" Class="form-control formAdm" @bind-Value="@Model.Mallid"></InputText>
+                <ValidationMessage For="@(() => Model.Mallid)" />
+            </div>
+            <br />
+            <div class="form-group">
+                <label for="mallname">Storcenter navn: </label>
+                <InputText Id="mallname" Class="form-control formAdm" @bind-Value="@Model.Location"></InputText>
+                <ValidationMessage For="@(() => Model.Location)" />
+            </div>
+            <br />
+            <button type="submit">Opret storcenter</button>
+            <div class="customTextColor">@statusMessageMall</div>
+        </EditForm>
+    </div>
+    <div style="float:right; width: 400px;">
+        <EditForm Model="@Model" OnValidSubmit="@HandleValidUser" OnInvalidSubmit="@HandleInvalid">
+
+            <DataAnnotationsValidator />
+
+            <div class="form-group">
+                <label for="uname">Brugernavn: </label>
+                <InputText Id="uname" Class="form-control formAdm" @bind-Value="@Model.Username"></InputText>
+                <ValidationMessage For="@(() => Model.Username)" />
+            </div>
+            <br />
+            <div class="form-group">
+                <label for="pass">Kodeord: </label>
+                <InputText Id="pass" type="password" Class="form-control formAdm" @bind-Value="@Model.Password"></InputText>
+                <ValidationMessage For="@(() => Model.Password)" />
+            </div>
+            <br />
+            <div class="form-group">
+                <label for="role">Bruger rolle: </label>
+                <InputText Id="role" Class="form-control formAdm" @bind-Value="@Model.Role"></InputText>
+                <ValidationMessage For="@(() => Model.Role)" />
+            </div>
+            <br />
+            <div class="form-group">
+                <label for="fcvr">Firma cvrnr.: </label>
+                <InputText Id="fcvr" Class="form-control formAdm" @bind-Value="@Model.Firmid"></InputText>
+                <ValidationMessage For="@(() => Model.Firmid)" />
+            </div>
+            <br />
+            <button type="submit">Opret bruger</button>
+            <div class="customTextColor">@statusMessageUser</div>
+        </EditForm>
+    </div>
+    <div class="customTextColor">@statusMessage</div>
+</div>
+
+@code {
+
+    private string statusMessageFirm = " ";
+    private string statusMessageMall = " ";
+    private string statusMessageUser = " ";
+    private string statusMessage = " ";
+
+    // Create object of FirmData using new
+    private FirmData Model = new FirmData();
+
+    // calling on button click for valid firm data.
+    protected async Task HandleValidFirm()
+    {
+        // Create object of RestCaller using new
+        RestCaller restCaller = new RestCaller();
+
+        statusMessageFirm = "Firma oprettelse igang...";
+
+        // Passing entered input to InsertFirm method
+        var result = await restCaller.InsertFirm(Model.Cvr, Model.Name);
+
+        // Checking result of received message from API
+        if (result != null && result == "Firm added")
+        {
+
+            statusMessageFirm = "Firma oprettet succesfuldt";
+        }
+        else
+        {
+            statusMessageFirm = "Oprettelse mislykkes";
+        }
+    }
+
+    // calling on button click for valid firm data.
+    protected async Task HandleValidMall()
+    {
+        // Create object of RestCaller using new
+        RestCaller restCaller = new RestCaller();
+
+        statusMessageMall = "Storcenter oprettelse igang...";
+
+        // Passing entered input to InsertMall method
+        var result = await restCaller.InsertMall(Model.Mallid, Model.Location);
+
+        // Checking result of received message from API
+        if (result != null && result == "Mall added")
+        {
+
+            statusMessageMall = "Storcenter oprettet succesfuldt";
+        }
+        else
+        {
+            statusMessageMall = "Oprettelse mislykkes";
+        }
+    }
+
+    // calling on button click for valid firm data.
+    protected async Task HandleValidUser()
+    {
+        // Create object of RestCaller using new
+        RestCaller restCaller = new RestCaller();
+
+        statusMessageUser = "Bruger oprettelse igang...";
+
+        // Passing entered input to InsertUser method
+        var result = await restCaller.InsertUser(Model.Username, Model.Password, Model.Role, Model.Firmid);
+
+        // Checking result of received message from API
+        if (result != null && result == "User added")
+        {
+
+            statusMessageUser = "Bruger oprettet succesfuldt";
+        }
+        else
+        {
+            statusMessageUser = "Oprettelse mislykkes";
+        } 
+    }
+
+    //Update status message if firm data was invalid
+    protected void HandleInvalid()
+    {
+        statusMessage = "Noget gik galt...";
+    }
+}
